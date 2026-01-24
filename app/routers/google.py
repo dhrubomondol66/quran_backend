@@ -22,17 +22,17 @@ def google_login(payload: dict, db: Session = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Invalid Google token")
     
     email = id_info.get("email")
-    google_user_id = id_info.get("sub")  # Google's unique user ID
+    google_user_id = id_info.get("sub")
     
     if not email or not google_user_id:
         raise HTTPException(status_code=401, detail="Invalid Google token")
     
-    # Check if user exists by email or provider_id
+
     user = crud.get_user_by_email(db, email)
     if not user:
         user = crud.get_user_by_provider_id(db, google_user_id)
     
-    # Create new user if doesn't exist
+  
     if not user:
         first_name = id_info.get("given_name", "")
         last_name = id_info.get("family_name", "")

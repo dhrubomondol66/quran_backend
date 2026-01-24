@@ -30,8 +30,8 @@ class UserOut(BaseModel):
     id: int
     email: EmailStr
     provider: str
-    first_name: Optional[str] = None  # ✅ Add this
-    last_name: Optional[str] = None   # ✅ Add this
+    first_name: Optional[str] = None  
+    last_name: Optional[str] = None   
     
     class Config:
         from_attributes = True
@@ -47,6 +47,6 @@ class UserLogin(BaseModel):
 class GoogleLogin(BaseModel):
     id_token: str
 
-class AppleLogin(BaseModel):  # ✅ Add this
+class AppleLogin(BaseModel): 
     id_token: str
-    user: Optional[dict] = None  # Contains name info on first sign-in
+    user: Optional[dict] = None  

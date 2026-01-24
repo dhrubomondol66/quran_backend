@@ -9,11 +9,11 @@ from app.auth import create_access_token
 
 router = APIRouter()
 
-# TODO: Replace these with your actual Apple credentials
-APPLE_CLIENT_ID = "com.yourapp.service"  # Your Service ID from Apple Developer
-APPLE_TEAM_ID = "YOUR_TEAM_ID"  # Your Team ID
 
-# Cache for Apple's public keys
+APPLE_CLIENT_ID = "com.yourapp.service"  
+APPLE_TEAM_ID = "YOUR_TEAM_ID"  
+
+
 APPLE_PUBLIC_KEYS_CACHE: Dict = {}
 
 def get_apple_public_keys():
@@ -37,17 +37,17 @@ def get_apple_public_keys():
 def verify_apple_token(id_token_str: str) -> dict:
     """Verify Apple ID token and return decoded payload"""
     
-    # Get Apple's public keys
+    
     apple_keys = get_apple_public_keys()
     
-    # Decode token header to get the key id (kid)
+ 
     try:
         unverified_header = jwt.get_unverified_header(id_token_str)
         kid = unverified_header.get("kid")
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid token format")
     
-    # Find the matching public key
+  
     public_key = None
     for key in apple_keys.get("keys", []):
         if key.get("kid") == kid:
@@ -57,7 +57,7 @@ def verify_apple_token(id_token_str: str) -> dict:
     if not public_key:
         raise HTTPException(status_code=401, detail="Public key not found")
     
-    # Verify and decode the token
+
     try:
         decoded = jwt.decode(
             id_token_str,
@@ -90,11 +90,11 @@ def apple_login(payload: dict, db: Session = Depends(get_db)):
     }
     """
     
-    # Validate payload
+
     if "id_token" not in payload:
         raise HTTPException(status_code=400, detail="id_token is required")
     
-    # Verify the Apple ID token
+    
     try:
         id_info = verify_apple_token(payload["id_token"])
     except HTTPException:
@@ -105,9 +105,8 @@ def apple_login(payload: dict, db: Session = Depends(get_db)):
             detail=f"Token verification failed: {str(e)}"
         )
     
-    # Extract user information from verified token
-    apple_user_id = id_info.get("sub")  # Apple's unique user identifier
-    email = id_info.get("email")
+   
+    apple_user_id = id_info.get("sub")  
     
     if not apple_user_id:
         raise HTTPException(
@@ -115,19 +114,17 @@ def apple_login(payload: dict, db: Session = Depends(get_db)):
             detail="Invalid Apple token: missing user ID"
         )
     
-    # Handle Apple's private relay email
+
     if not email:
-        # If user chose to hide email, use Apple's private relay format
         email = f"{apple_user_id}@privaterelay.appleid.com"
     
-    # Check if user exists by email or provider_id
+    
     user = crud.get_user_by_email(db, email)
     if not user:
         user = crud.get_user_by_provider_id(db, apple_user_id)
     
-    # Create new user if doesn't exist
+  
     if not user:
-        # Extract name from payload (only available on first sign-in)
         user_data = payload.get("user", {})
         name_data = user_data.get("name", {})
         first_name = name_data.get("firstName", "")
@@ -142,7 +139,7 @@ def apple_login(payload: dict, db: Session = Depends(get_db)):
             last_name=last_name
         )
     
-    # Generate JWT token for your app
+
     token = create_access_token({"sub": str(user.id)})
     
     return {
