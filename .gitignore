@@ -1,0 +1,107 @@
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+
+# =========================
+# Virtual Environments
+# =========================
+venv/
+.env/
+.env.*
+.venv/
+pip-wheel-metadata/
+
+# =========================
+# FastAPI / Uvicorn
+# =========================
+*.log
+logs/
+uvicorn.log
+
+# =========================
+# Environment variables
+# =========================
+.env
+.env.local
+.env.production
+
+# =========================
+# Database
+# =========================
+*.sqlite3
+*.db
+alembic/versions/*.pyc
+
+# =========================
+# PostgreSQL
+# =========================
+pgdata/
+postgres-data/
+
+# =========================
+# Audio files (IMPORTANT)
+# =========================
+uploads/
+audio/
+recordings/
+*.wav
+*.mp3
+*.m4a
+*.ogg
+
+# =========================
+# ML / Speech-to-text
+# =========================
+models/
+checkpoints/
+*.pt
+*.onnx
+*.h5
+*.pkl
+
+# =========================
+# Caches & temp files
+# =========================
+.cache/
+pytest_cache/
+.mypy_cache/
+.pytest_cache/
+
+# =========================
+# Editor / IDE
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# =========================
+# OS files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Coverage / Tests
+# =========================
+.coverage
+htmlcov/
+
+# =========================
+# Docker (if you add later)
+# =========================
+docker-compose.override.yml
+
+# =========================
+# Secrets
+# =========================
+*.pem
+*.key
+*.crt
