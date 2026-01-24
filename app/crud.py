@@ -29,3 +29,17 @@ def create_user(db: Session, email: str, password: str):
     db.commit()
     db.refresh(user)
     return user
+
+from app.models import User
+
+def create_user_oauth(db, email: str, provider: str = "google", provider_id: str | None = None):
+    user = User(
+        email=email,
+        hashed_password=None,
+        provider=provider,
+        provider_id=provider_id,
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user

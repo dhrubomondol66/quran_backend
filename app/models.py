@@ -34,3 +34,5 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
 
+    provider = Column(String, nullable=False, default="local")
+    provider_id = Column(String, nullable=True)

@@ -1,7 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app import schemas, crud, auth
+from google.oauth2 import id_token
+from google.auth.transport.requests import Request
+
 
 router = APIRouter()
 
@@ -33,3 +36,4 @@ def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
         "access_token": token,
         "token_type": "bearer"
     }
+

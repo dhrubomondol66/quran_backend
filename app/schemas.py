@@ -4,7 +4,7 @@ from typing import List
 
 class AyahOut(BaseModel):
     id: int
-    number: int     # ✅ MATCHES SQLAlchemy
+    number: int     
     text: str
 
     class Config:
@@ -48,3 +48,5 @@ class UserLogin(BaseModel):
     email: EmailStr
     password: str
 
+class GoogleLogin(BaseModel):
+    id_token: str
