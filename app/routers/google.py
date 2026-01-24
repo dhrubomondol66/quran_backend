@@ -9,7 +9,7 @@ import logging
 
 router = APIRouter()
 
-# Set up logging
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -17,7 +17,6 @@ GOOGLE_CLIENT_ID = "85715069783-l5ggv452q2ut3a3qbh3i0mgquoo052lt.apps.googleuser
 
 @router.post("/google")
 def google_login(payload: dict, db: Session = Depends(get_db)):
-    # Log the incoming request (without the full token for security)
     logger.info(f"Google login attempt - payload keys: {payload.keys()}")
     
     try:
@@ -29,14 +28,12 @@ def google_login(payload: dict, db: Session = Depends(get_db)):
         logger.info(f"Token verified successfully for email: {id_info.get('email')}")
         
     except ValueError as e:
-        # This catches issues like expired tokens, wrong audience, etc.
         logger.error(f"Token verification failed (ValueError): {str(e)}")
         raise HTTPException(
             status_code=401, 
             detail=f"Invalid Google token: {str(e)}"
         )
     except Exception as e:
-        # Catch any other errors
         logger.error(f"Unexpected error during token verification: {type(e).__name__}: {str(e)}")
         raise HTTPException(
             status_code=401, 
@@ -51,12 +48,10 @@ def google_login(payload: dict, db: Session = Depends(get_db)):
     
     logger.info(f"Looking up user: {email}")
     
-    # Check if user exists by email or provider_id
     user = crud.get_user_by_email(db, email)
     if not user:
         user = crud.get_user_by_provider_id(db, google_user_id)
     
-    # Create new user if doesn't exist
     if not user:
         first_name = id_info.get("given_name", "")
         last_name = id_info.get("family_name", "")
