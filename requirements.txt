@@ -1,19 +1,16 @@
-fastapi>=0.110.0
-uvicorn[standard]>=0.27.0
+# Existing dependencies (keep what you already have)
+fastapi
+uvicorn
+sqlalchemy
+psycopg2-binary  # or psycopg2 if you have it
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
+pydantic[email]
+google-auth
+python-dotenv
 
-# Database
-sqlalchemy>=2.0.25
-psycopg2-binary>=2.9.9
-
-# Auth / Security
-python-jose[cryptography]>=3.3.0
-passlib[bcrypt]>=1.7.4
-bcrypt==4.0.1
-
-# Validation
-pydantic>=2.6.0
-pydantic-settings>=2.2.1
-email-validator>=2.1.0.post1
-
-# HTTP
-requests>=2.31.0
+# New dependencies for Apple Sign In
+pyjwt
+cryptography
+requests
