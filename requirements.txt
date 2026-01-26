@@ -14,3 +14,6 @@ python-dotenv
 pyjwt
 cryptography
 requests
+
+#payment 
+stripe
