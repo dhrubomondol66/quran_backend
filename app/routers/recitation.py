@@ -331,3 +331,4 @@ async def get_complete_surah_recitation(
         
     except requests.RequestException as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch recitation: {str(e)}")
+    

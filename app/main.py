@@ -7,6 +7,10 @@ from app.routers.google import router as google_router
 from app.routers.apple import router as apple_router
 from app.routers.payment import router as payment_router
 from app.routers.recitation import router as recitation_router
+from app.routers.progress import router as progress_router 
+from app.routers.leaderboard import router as leaderboard_router  
+from app.routers.settings import router as settings_router  
+
 
 app = FastAPI(title="Quran Recitation API")
 
@@ -28,7 +32,11 @@ app.include_router(surah.router, tags=["Surahs"])
 app.include_router(google_router, prefix="/auth", tags=["OAuth"])
 app.include_router(apple_router, prefix="/auth", tags=["OAuth"])
 app.include_router(payment_router, prefix="/payment", tags=["Payment"])
-app.include_router(recitation_router, prefix="/recitation", tags=["Recitation"])  # ✅ Add this
+app.include_router(recitation_router, prefix="/recitation", tags=["Recitation"])
+app.include_router(progress_router, prefix="/progress", tags=["Progress"]) 
+app.include_router(leaderboard_router, prefix="/leaderboard", tags=["Leaderboard"]) 
+app.include_router(settings_router, prefix="/user", tags=["Settings"])  
+
 
 @app.get("/")
 def read_root():
