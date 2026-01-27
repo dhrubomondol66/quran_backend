@@ -42,6 +42,11 @@ class User(Base):
     first_name = Column(String, nullable=True)
     last_name = Column(String, nullable=True)
     
+     # ✅ Email verification fields
+    is_email_verified = Column(Boolean, default=False, nullable=False)
+    email_verification_token = Column(String, nullable=True, unique=True, index=True)
+    verification_token_expires = Column(DateTime, nullable=True)
+    
     # Subscription fields
     subscription_status = Column(
         Enum(SubscriptionStatus), 

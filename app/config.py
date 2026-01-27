@@ -16,3 +16,4 @@ STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
 # Payment Configuration (amounts in cents)
 PREMIUM_PRICE_MONTHLY = 2000  # $20.00
 PREMIUM_PRICE_YEARLY = 20000  # $200.00
+

@@ -4,7 +4,7 @@ from app.database import get_db
 from app.deps import get_current_user
 from app.models import User, UserSettings
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional 
 
 router = APIRouter()
 

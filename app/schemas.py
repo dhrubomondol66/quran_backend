@@ -33,9 +33,10 @@ class UserOut(BaseModel):
     provider: str
     first_name: Optional[str] = None
     last_name: Optional[str] = None
-    subscription_status: str  # ✅ Add this
-    subscription_plan: Optional[str] = None  # ✅ Add this
-    subscription_end_date: Optional[datetime] = None  # ✅ Add this
+    subscription_status: str  
+    subscription_plan: Optional[str] = None  
+    subscription_end_date: Optional[datetime] = None  
+    is_email_verified: bool  
     
     class Config:
         from_attributes = True
