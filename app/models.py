@@ -47,6 +47,9 @@ class User(Base):
     email_verification_token = Column(String, nullable=True, unique=True, index=True)
     verification_token_expires = Column(DateTime, nullable=True)
     
+    password_reset_token = Column(String, nullable=True, unique=True, index=True)
+    password_reset_expires = Column(DateTime, nullable=True)
+    
     # Subscription fields
     subscription_status = Column(
         Enum(SubscriptionStatus), 

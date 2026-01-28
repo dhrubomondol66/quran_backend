@@ -74,3 +74,18 @@ class SubscriptionOut(BaseModel):
     
     class Config:
         from_attributes = True
+
+class PasswordResetRequest(BaseModel):
+    email: EmailStr
+
+class PasswordReset(BaseModel):
+    token: str
+    new_password: str
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "token": "abc123xyz...",
+                "new_password": "NewSecurePassword123!"
+            }
+        }

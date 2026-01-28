@@ -3,7 +3,7 @@ from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app import schemas, crud, auth
-from app.email_utils import send_email, get_verification_email_template, get_welcome_email_template
+from app.email_utils import send_email, get_verification_email_template, get_welcome_email_template, get_password_reset_email_template, get_password_changed_email_template
 from google.oauth2 import id_token
 from google.auth.transport.requests import Request
 import os
@@ -211,4 +211,300 @@ def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
     return {
         "access_token": token,
         "token_type": "bearer"
+    }
+    
+@router.post("/forgot-password")
+async def forgot_password(
+    request: schemas.PasswordResetRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db)
+):
+    """Request password reset - sends email with reset link"""
+    
+    # Always return success to prevent email enumeration
+    # (Don't reveal if email exists or not for security)
+    
+    user = crud.create_password_reset_token(db, request.email)
+    
+    if user:
+        # Send password reset email
+        reset_link = f"{FRONTEND_URL}/reset-password?token={user.password_reset_token}"
+        html_content = get_password_reset_email_template(reset_link, request.email)
+        
+        background_tasks.add_task(
+            send_email,
+            to_email=request.email,
+            subject="Reset Your Password - Quran Recitation App",
+            html_content=html_content
+        )
+    
+    # Always return success message (security best practice)
+    return {
+        "message": "If that email address is in our system, we've sent a password reset link to it."
+    }
+
+@router.get("/reset-password", response_class=HTMLResponse)
+async def reset_password_page(token: str, db: Session = Depends(get_db)):
+    """Show password reset form (GET request from email link)"""
+    
+    # Verify token is valid
+    user = crud.get_user_by_reset_token(db, token)
+    
+    if not user:
+        return HTMLResponse(content="""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Invalid Reset Link</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    height: 100vh;
+                    margin: 0;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                }
+                .container {
+                    background: white;
+                    padding: 40px;
+                    border-radius: 10px;
+                    text-align: center;
+                    max-width: 500px;
+                }
+                h1 { color: #d32f2f; }
+                p { color: #666; }
+                .button {
+                    display: inline-block;
+                    margin-top: 20px;
+                    padding: 15px 30px;
+                    background: #667eea;
+                    color: white;
+                    text-decoration: none;
+                    border-radius: 5px;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>❌ Invalid or Expired Reset Link</h1>
+                <p>This password reset link is invalid or has expired.</p>
+                <p>Password reset links are only valid for 1 hour.</p>
+                <a href="#" class="button">Request New Reset Link</a>
+            </div>
+        </body>
+        </html>
+        """, status_code=400)
+    
+    # Show password reset form
+    return HTMLResponse(content=f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Reset Password</title>
+        <style>
+            body {{
+                font-family: Arial, sans-serif;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+                margin: 0;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            }}
+            .container {{
+                background: white;
+                padding: 40px;
+                border-radius: 10px;
+                max-width: 500px;
+                width: 100%;
+            }}
+            h1 {{ color: #333; text-align: center; }}
+            .form-group {{
+                margin: 20px 0;
+            }}
+            label {{
+                display: block;
+                margin-bottom: 5px;
+                color: #666;
+                font-weight: bold;
+            }}
+            input {{
+                width: 100%;
+                padding: 12px;
+                border: 2px solid #ddd;
+                border-radius: 5px;
+                font-size: 16px;
+                box-sizing: border-box;
+            }}
+            input:focus {{
+                outline: none;
+                border-color: #667eea;
+            }}
+            button {{
+                width: 100%;
+                padding: 15px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border: none;
+                border-radius: 5px;
+                font-size: 16px;
+                font-weight: bold;
+                cursor: pointer;
+                margin-top: 10px;
+            }}
+            button:hover {{
+                opacity: 0.9;
+            }}
+            .message {{
+                padding: 15px;
+                border-radius: 5px;
+                margin: 20px 0;
+                display: none;
+            }}
+            .success {{
+                background: #d4edda;
+                color: #155724;
+                border: 1px solid #c3e6cb;
+            }}
+            .error {{
+                background: #f8d7da;
+                color: #721c24;
+                border: 1px solid #f5c6cb;
+            }}
+            .requirements {{
+                background: #e3f2fd;
+                padding: 15px;
+                border-radius: 5px;
+                margin: 20px 0;
+                font-size: 14px;
+            }}
+            .requirements ul {{
+                margin: 10px 0;
+                padding-left: 20px;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>🔐 Reset Your Password</h1>
+            <p style="text-align: center; color: #666;">Enter your new password below</p>
+            
+            <div id="message" class="message"></div>
+            
+            <form id="resetForm">
+                <div class="requirements">
+                    <strong>Password Requirements:</strong>
+                    <ul>
+                        <li>At least 8 characters long</li>
+                        <li>Contains at least one letter and one number</li>
+                    </ul>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">New Password</label>
+                    <input type="password" id="password" name="password" required minlength="8">
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm New Password</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" required minlength="8">
+                </div>
+                
+                <button type="submit">Reset Password</button>
+            </form>
+        </div>
+        
+        <script>
+            const form = document.getElementById('resetForm');
+            const messageDiv = document.getElementById('message');
+            
+            form.addEventListener('submit', async (e) => {{
+                e.preventDefault();
+                
+                const password = document.getElementById('password').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+                
+                // Validate passwords match
+                if (password !== confirmPassword) {{
+                    showMessage('Passwords do not match!', 'error');
+                    return;
+                }}
+                
+                // Validate password strength
+                if (password.length < 8) {{
+                    showMessage('Password must be at least 8 characters long!', 'error');
+                    return;
+                }}
+                
+                try {{
+                    const response = await fetch('/auth/reset-password', {{
+                        method: 'POST',
+                        headers: {{
+                            'Content-Type': 'application/json'
+                        }},
+                        body: JSON.stringify({{
+                            token: '{token}',
+                            new_password: password
+                        }})
+                    }});
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {{
+                        showMessage(data.message, 'success');
+                        form.reset();
+                        
+                        // Redirect after 2 seconds
+                        setTimeout(() => {{
+                            window.location.href = '#';  // Change to your login page
+                        }}, 2000);
+                    }} else {{
+                        showMessage(data.detail || 'Password reset failed', 'error');
+                    }}
+                }} catch (error) {{
+                    showMessage('An error occurred. Please try again.', 'error');
+                }}
+            }});
+            
+            function showMessage(text, type) {{
+                messageDiv.textContent = text;
+                messageDiv.className = 'message ' + type;
+                messageDiv.style.display = 'block';
+            }}
+        </script>
+    </body>
+    </html>
+    """)
+
+@router.post("/reset-password")
+async def reset_password(
+    reset_data: schemas.PasswordReset,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db)
+):
+    """Reset password with token (POST from form)"""
+    
+    user = crud.reset_user_password(db, reset_data.token, reset_data.new_password)
+    
+    if not user:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid or expired reset token"
+        )
+    
+    # Send confirmation email
+    user_name = user.first_name or user.email.split('@')[0]
+    confirmation_html = get_password_changed_email_template(user_name)
+    
+    background_tasks.add_task(
+        send_email,
+        to_email=user.email,
+        subject="Password Changed - Quran Recitation App",
+        html_content=confirmation_html
+    )
+    
+    return {
+        "message": "Password reset successfully! You can now login with your new password."
     }

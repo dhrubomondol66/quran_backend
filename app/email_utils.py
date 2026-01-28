@@ -228,3 +228,162 @@ def get_welcome_email_template(user_name: str) -> str:
     """)
     
     return template.render(user_name=user_name)
+
+
+def get_password_reset_email_template(reset_link: str, user_email: str) -> str:
+    """Generate password reset email HTML"""
+    
+    template = Template("""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+            .header {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 30px;
+                text-align: center;
+                border-radius: 10px 10px 0 0;
+            }
+            .content {
+                background: #f9f9f9;
+                padding: 30px;
+                border-radius: 0 0 10px 10px;
+            }
+            .button {
+                display: inline-block;
+                padding: 15px 30px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                text-decoration: none;
+                border-radius: 5px;
+                margin: 20px 0;
+                font-weight: bold;
+            }
+            .footer {
+                text-align: center;
+                margin-top: 30px;
+                color: #666;
+                font-size: 12px;
+            }
+            .warning {
+                background: #fff3cd;
+                border-left: 4px solid #ffc107;
+                padding: 15px;
+                margin: 20px 0;
+            }
+            .security-note {
+                background: #e3f2fd;
+                border-left: 4px solid #2196f3;
+                padding: 15px;
+                margin: 20px 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1>🔐 Password Reset Request</h1>
+            <p>Quran Recitation App</p>
+        </div>
+        <div class="content">
+            <h2>Reset Your Password</h2>
+            <p>We received a request to reset the password for your account associated with <strong>{{ user_email }}</strong>.</p>
+            
+            <p>Click the button below to reset your password:</p>
+            
+            <div style="text-align: center;">
+                <a href="{{ reset_link }}" class="button">Reset Password</a>
+            </div>
+            
+            <p>Or copy and paste this link into your browser:</p>
+            <p style="background: white; padding: 10px; border-radius: 5px; word-break: break-all;">
+                {{ reset_link }}
+            </p>
+            
+            <div class="warning">
+                <strong>⚠️ Important:</strong> This password reset link will expire in 1 hour.
+            </div>
+            
+            <div class="security-note">
+                <strong>🔒 Security Note:</strong> If you didn't request a password reset, please ignore this email. Your password will remain unchanged.
+            </div>
+            
+            <p>Best regards,<br>The Quran Recitation Team</p>
+        </div>
+        <div class="footer">
+            <p>© 2026 Quran Recitation App. All rights reserved.</p>
+            <p>This is an automated message, please do not reply to this email.</p>
+        </div>
+    </body>
+    </html>
+    """)
+    
+    return template.render(reset_link=reset_link, user_email=user_email)
+
+def get_password_changed_email_template(user_name: str) -> str:
+    """Generate password changed confirmation email"""
+    
+    template = Template("""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+            .header {
+                background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+                color: white;
+                padding: 30px;
+                text-align: center;
+                border-radius: 10px 10px 0 0;
+            }
+            .content {
+                background: #f9f9f9;
+                padding: 30px;
+                border-radius: 0 0 10px 10px;
+            }
+            .security-alert {
+                background: #ffebee;
+                border-left: 4px solid #f44336;
+                padding: 15px;
+                margin: 20px 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1>✅ Password Changed Successfully</h1>
+        </div>
+        <div class="content">
+            <h2>Hello, {{ user_name }}!</h2>
+            
+            <p>Your password has been successfully changed.</p>
+            
+            <p>You can now use your new password to log in to your account.</p>
+            
+            <div class="security-alert">
+                <strong>⚠️ Didn't change your password?</strong><br>
+                If you didn't make this change, please contact us immediately at support@quranapp.com or reset your password again.
+            </div>
+            
+            <p>Best regards,<br>The Quran Recitation Team</p>
+        </div>
+    </body>
+    </html>
+    """)
+    
+    return template.render(user_name=user_name)
