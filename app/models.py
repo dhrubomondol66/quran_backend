@@ -3,6 +3,7 @@ from app.database import Base
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
+from sqlalchemy import Enum as SAEnum
 
 class Surah(Base):
     __tablename__ = "surahs"
@@ -52,9 +53,14 @@ class User(Base):
     
     # Subscription fields
     subscription_status = Column(
-        Enum(SubscriptionStatus), 
-        default=SubscriptionStatus.FREE, 
-        nullable=False
+        SAEnum(
+            SubscriptionStatus,
+            name="subscriptionstatus",
+            values_callable=lambda x: [e.value for e in x],  # ✅ store 'free', not 'FREE'
+            native_enum=True,
+        ),
+        nullable=False,
+        default=SubscriptionStatus.FREE,
     )
     subscription_plan = Column(String, nullable=True)  # "monthly", "yearly", "lifetime"
     stripe_customer_id = Column(String, unique=True, nullable=True, index=True)

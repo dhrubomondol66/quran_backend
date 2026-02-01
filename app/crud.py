@@ -3,6 +3,8 @@ from app.models import Surah, User
 from app.auth import hash_password
 import secrets
 from datetime import datetime, timedelta
+from app.models import Surah, User, SubscriptionStatus
+
 
 def get_all_surahs(db: Session):
     return db.query(Surah).order_by(Surah.number).all()
@@ -39,7 +41,8 @@ def create_user(db: Session, email: str, password: str):
         provider="local",
         is_email_verified=False,  # ✅ Not verified initially
         email_verification_token=verification_token,
-        verification_token_expires=token_expires
+        verification_token_expires=token_expires,
+        subscription_status=SubscriptionStatus.FREE,  # ✅ THIS LINE
     )
     db.add(user)
     db.commit()
@@ -82,7 +85,8 @@ def create_user_oauth(
         provider_id=provider_id,
         first_name=first_name,
         last_name=last_name,
-        is_email_verified=True  # ✅ OAuth users are pre-verified
+        is_email_verified=True,  # ✅ OAuth users are pre-verified
+        subscription_status=SubscriptionStatus.FREE,  # ✅ ADD THIS
     )
     db.add(user)
     db.commit()
