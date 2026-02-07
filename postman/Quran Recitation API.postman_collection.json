@@ -1,7 +1,7 @@
 {
   "info": {
-    "_postman_id": "b0650bb7-dcc7-4353-bba0-acd1369b7e78",
-    "name": "Quran Recitation API",
+    "_postman_id": "4d183315-8878-4680-9ab4-6acf9af6a669",
+    "name": "Quran Recitation API Copy",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "51648150"
   },
@@ -28,7 +28,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"email\": \"9MlOtu@TievcPaBNyT.cfox\",\n  \"password\": \"string\"\n}",
+                  "raw": "{\n  \"email\": \"8cH@dLibJUyINjaBlfGJd.rnzl\",\n  \"password\": \"string\"\n}",
                   "options": {
                     "raw": {
                       "headerFamily": "json",
@@ -65,7 +65,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"email\": \"9MlOtu@TievcPaBNyT.cfox\",\n  \"password\": \"string\"\n}",
+                      "raw": "{\n  \"email\": \"8cH@dLibJUyINjaBlfGJd.rnzl\",\n  \"password\": \"string\"\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -94,7 +94,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"id\": 5476,\n  \"email\": \"Vd2a9vokld7cJn@ZNsSYeWsUcrSAQrqItGArkUODBgmnAT.qs\",\n  \"provider\": \"string\",\n  \"subscription_status\": \"string\",\n  \"is_email_verified\": false,\n  \"first_name\": \"string\",\n  \"last_name\": null,\n  \"subscription_plan\": null,\n  \"subscription_end_date\": null\n}"
+                  "body": "{\n  \"id\": 9180,\n  \"email\": \"Vr-C7GV7rJgqSrB@ZjukziveCXhkVuS.ofe\",\n  \"provider\": \"string\",\n  \"subscription_status\": \"string\",\n  \"is_email_verified\": true,\n  \"first_name\": null,\n  \"last_name\": \"string\",\n  \"subscription_plan\": null,\n  \"subscription_end_date\": null\n}"
                 },
                 {
                   "name": "Validation Error",
@@ -112,7 +112,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"email\": \"9MlOtu@TievcPaBNyT.cfox\",\n  \"password\": \"string\"\n}",
+                      "raw": "{\n  \"email\": \"8cH@dLibJUyINjaBlfGJd.rnzl\",\n  \"password\": \"string\"\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -141,7 +141,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        \"string\",\n        5471\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3328,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                 }
               ]
             }
@@ -255,7 +255,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        \"string\",\n        5471\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3328,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                 }
               ]
             },
@@ -364,7 +364,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        \"string\",\n        5471\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3328,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                 }
               ]
             }
@@ -478,7 +478,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        \"string\",\n        5471\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3328,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                 }
               ]
             }
@@ -503,7 +503,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"email\": \"vciFwX@FZFE.vyd\",\n  \"password\": \"string\"\n}",
+                  "raw": "{\n  \"email\": \"2a9P7gE@TRuNJVWmdWNhrTmJHldj.ewad\",\n  \"password\": \"string\"\n}",
                   "options": {
                     "raw": {
                       "headerFamily": "json",
@@ -540,7 +540,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"email\": \"vciFwX@FZFE.vyd\",\n  \"password\": \"string\"\n}",
+                      "raw": "{\n  \"email\": \"2a9P7gE@TRuNJVWmdWNhrTmJHldj.ewad\",\n  \"password\": \"string\"\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -587,7 +587,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"email\": \"vciFwX@FZFE.vyd\",\n  \"password\": \"string\"\n}",
+                      "raw": "{\n  \"email\": \"2a9P7gE@TRuNJVWmdWNhrTmJHldj.ewad\",\n  \"password\": \"string\"\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -616,7 +616,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        \"string\",\n        5471\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3328,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                 }
               ]
             }
@@ -641,7 +641,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"email\": \"9PUfynRnJij4@EfTLjmEgiLRHjehFMUgRqmWQ.sfxk\"\n}",
+                  "raw": "{\n  \"email\": \"gdmgWq22RwF2M@wtwUknIas.bq\"\n}",
                   "options": {
                     "raw": {
                       "headerFamily": "json",
@@ -678,7 +678,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"email\": \"9PUfynRnJij4@EfTLjmEgiLRHjehFMUgRqmWQ.sfxk\"\n}",
+                      "raw": "{\n  \"email\": \"gdmgWq22RwF2M@wtwUknIas.bq\"\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -725,7 +725,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"email\": \"9PUfynRnJij4@EfTLjmEgiLRHjehFMUgRqmWQ.sfxk\"\n}",
+                      "raw": "{\n  \"email\": \"gdmgWq22RwF2M@wtwUknIas.bq\"\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -754,7 +754,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        \"string\",\n        5471\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3328,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                 }
               ]
             }
@@ -868,7 +868,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        \"string\",\n        5471\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3328,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                 }
               ]
             },
@@ -1001,7 +1001,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        \"string\",\n        5471\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3328,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                 }
               ]
             }
@@ -1026,7 +1026,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"key_0\": \"string\",\n  \"key_1\": \"string\",\n  \"key_2\": true\n}",
+                  "raw": "{\n  \"key_0\": \"string\",\n  \"key_1\": \"string\"\n}",
                   "options": {
                     "raw": {
                       "headerFamily": "json",
@@ -1062,7 +1062,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"key_0\": \"string\",\n  \"key_1\": \"string\",\n  \"key_2\": true\n}",
+                      "raw": "{\n  \"key_0\": \"string\",\n  \"key_1\": \"string\"\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -1109,7 +1109,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"key_0\": \"string\",\n  \"key_1\": \"string\",\n  \"key_2\": true\n}",
+                      "raw": "{\n  \"key_0\": \"string\",\n  \"key_1\": \"string\"\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -1138,7 +1138,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        \"string\",\n        5471\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3328,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                 }
               ]
             }
@@ -1163,7 +1163,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"key_0\": \"string\",\n  \"key_1\": \"string\",\n  \"key_2\": true\n}",
+                  "raw": "{\n  \"key_0\": \"string\",\n  \"key_1\": \"string\"\n}",
                   "options": {
                     "raw": {
                       "headerFamily": "json",
@@ -1200,7 +1200,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"key_0\": \"string\",\n  \"key_1\": \"string\",\n  \"key_2\": true\n}",
+                      "raw": "{\n  \"key_0\": \"string\",\n  \"key_1\": \"string\"\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -1247,7 +1247,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"key_0\": \"string\",\n  \"key_1\": \"string\",\n  \"key_2\": true\n}",
+                      "raw": "{\n  \"key_0\": \"string\",\n  \"key_1\": \"string\"\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -1276,7 +1276,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        \"string\",\n        5471\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3328,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                 }
               ]
             }
@@ -1312,7 +1312,7 @@
                   "variable": [
                     {
                       "key": "surah_id",
-                      "value": "5656"
+                      "value": "4196"
                     }
                   ]
                 }
@@ -1340,7 +1340,7 @@
                       "variable": [
                         {
                           "key": "surah_id",
-                          "value": "5656"
+                          "value": "4196"
                         }
                       ]
                     }
@@ -1355,7 +1355,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"id\": 290,\n  \"number\": 8852,\n  \"name_ar\": \"string\",\n  \"name_en\": \"string\",\n  \"ayah_count\": 3086,\n  \"ayahs\": [\n    {\n      \"id\": 9575,\n      \"number\": 5122,\n      \"text\": \"string\"\n    },\n    {\n      \"id\": 8041,\n      \"number\": 1922,\n      \"text\": \"string\"\n    }\n  ]\n}"
+                  "body": "{\n  \"id\": 9282,\n  \"number\": 9905,\n  \"name_ar\": \"string\",\n  \"name_en\": \"string\",\n  \"ayah_count\": 7223,\n  \"ayahs\": [\n    {\n      \"id\": 472,\n      \"number\": 3687,\n      \"text\": \"string\"\n    },\n    {\n      \"id\": 1438,\n      \"number\": 5580,\n      \"text\": \"string\"\n    }\n  ]\n}"
                 },
                 {
                   "name": "Validation Error",
@@ -1379,7 +1379,7 @@
                       "variable": [
                         {
                           "key": "surah_id",
-                          "value": "5656"
+                          "value": "4196"
                         }
                       ]
                     }
@@ -1394,7 +1394,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        \"string\",\n        5471\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3328,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                 }
               ]
             }
@@ -1451,7 +1451,7 @@
                 }
               ],
               "cookie": [],
-              "body": "[\n  {\n    \"id\": 7532,\n    \"number\": 5984,\n    \"name_ar\": \"string\",\n    \"name_en\": \"string\",\n    \"ayah_count\": 8384\n  },\n  {\n    \"id\": 5588,\n    \"number\": 1864,\n    \"name_ar\": \"string\",\n    \"name_en\": \"string\",\n    \"ayah_count\": 1361\n  }\n]"
+              "body": "[\n  {\n    \"id\": 2626,\n    \"number\": 6430,\n    \"name_ar\": \"string\",\n    \"name_en\": \"string\",\n    \"ayah_count\": 7888\n  },\n  {\n    \"id\": 4995,\n    \"number\": 2733,\n    \"name_ar\": \"string\",\n    \"name_en\": \"string\",\n    \"ayah_count\": 3323\n  }\n]"
             }
           ]
         }
@@ -1680,7 +1680,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        \"string\",\n        5471\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3328,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                 }
               ]
             }
@@ -1788,7 +1788,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        \"string\",\n        5471\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3328,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                 }
               ]
             }
@@ -1871,7 +1871,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"subscription_status\": \"string\",\n  \"subscription_plan\": null,\n  \"subscription_end_date\": null,\n  \"days_remaining\": 5492\n}"
+                  "body": "{\n  \"subscription_status\": \"string\",\n  \"subscription_plan\": null,\n  \"subscription_end_date\": \"1961-12-15T21:58:11.442Z\",\n  \"days_remaining\": 486\n}"
                 }
               ]
             }
@@ -2259,7 +2259,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        \"string\",\n        5471\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3328,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                 }
               ]
             }
@@ -2407,7 +2407,7 @@
                           "variable": [
                             {
                               "key": "surah_number",
-                              "value": "8419"
+                              "value": "5068"
                             }
                           ]
                         },
@@ -2449,7 +2449,7 @@
                               "variable": [
                                 {
                                   "key": "surah_number",
-                                  "value": "8419"
+                                  "value": "5068"
                                 }
                               ]
                             }
@@ -2501,7 +2501,7 @@
                               "variable": [
                                 {
                                   "key": "surah_number",
-                                  "value": "8419"
+                                  "value": "5068"
                                 }
                               ]
                             }
@@ -2516,7 +2516,7 @@
                             }
                           ],
                           "cookie": [],
-                          "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        \"string\",\n        5471\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                          "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3328,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                         }
                       ]
                     }
@@ -2549,7 +2549,7 @@
                           "variable": [
                             {
                               "key": "surah_number",
-                              "value": "8419"
+                              "value": "5068"
                             }
                           ]
                         },
@@ -2580,7 +2580,7 @@
                               "variable": [
                                 {
                                   "key": "surah_number",
-                                  "value": "8419"
+                                  "value": "5068"
                                 }
                               ]
                             }
@@ -2621,7 +2621,7 @@
                               "variable": [
                                 {
                                   "key": "surah_number",
-                                  "value": "8419"
+                                  "value": "5068"
                                 }
                               ]
                             }
@@ -2636,7 +2636,7 @@
                             }
                           ],
                           "cookie": [],
-                          "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        \"string\",\n        5471\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                          "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3328,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                         }
                       ]
                     }
@@ -2690,7 +2690,7 @@
                           "variable": [
                             {
                               "key": "surah_number",
-                              "value": "8419"
+                              "value": "5068"
                             }
                           ]
                         },
@@ -2732,7 +2732,7 @@
                               "variable": [
                                 {
                                   "key": "surah_number",
-                                  "value": "8419"
+                                  "value": "5068"
                                 }
                               ]
                             }
@@ -2784,7 +2784,7 @@
                               "variable": [
                                 {
                                   "key": "surah_number",
-                                  "value": "8419"
+                                  "value": "5068"
                                 }
                               ]
                             }
@@ -2799,7 +2799,7 @@
                             }
                           ],
                           "cookie": [],
-                          "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        \"string\",\n        5471\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                          "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3328,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                         }
                       ]
                     }
@@ -2863,7 +2863,7 @@
                           "variable": [
                             {
                               "key": "ayah_number",
-                              "value": "191"
+                              "value": "9995"
                             }
                           ]
                         },
@@ -2905,7 +2905,7 @@
                               "variable": [
                                 {
                                   "key": "ayah_number",
-                                  "value": "191"
+                                  "value": "9995"
                                 }
                               ]
                             }
@@ -2957,7 +2957,7 @@
                               "variable": [
                                 {
                                   "key": "ayah_number",
-                                  "value": "191"
+                                  "value": "9995"
                                 }
                               ]
                             }
@@ -2972,7 +2972,7 @@
                             }
                           ],
                           "cookie": [],
-                          "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        \"string\",\n        5471\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                          "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3328,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                         }
                       ]
                     }
@@ -3174,7 +3174,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"key_0\": false,\n  \"key_1\": 6567.618404303073\n}",
+                  "raw": "{\n  \"key_0\": false,\n  \"key_1\": true\n}",
                   "options": {
                     "raw": {
                       "headerFamily": "json",
@@ -3216,7 +3216,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"key_0\": false,\n  \"key_1\": 6567.618404303073\n}",
+                      "raw": "{\n  \"key_0\": false,\n  \"key_1\": true\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -3268,7 +3268,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"key_0\": false,\n  \"key_1\": 6567.618404303073\n}",
+                      "raw": "{\n  \"key_0\": false,\n  \"key_1\": true\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -3297,7 +3297,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        \"string\",\n        5471\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3328,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                 }
               ]
             }
@@ -3347,7 +3347,7 @@
                       "variable": [
                         {
                           "key": "surah_number",
-                          "value": "8419"
+                          "value": "5068"
                         }
                       ]
                     },
@@ -3382,7 +3382,7 @@
                           "variable": [
                             {
                               "key": "surah_number",
-                              "value": "8419"
+                              "value": "5068"
                             }
                           ]
                         }
@@ -3427,7 +3427,7 @@
                           "variable": [
                             {
                               "key": "surah_number",
-                              "value": "8419"
+                              "value": "5068"
                             }
                           ]
                         }
@@ -3442,7 +3442,7 @@
                         }
                       ],
                       "cookie": [],
-                      "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        \"string\",\n        5471\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                      "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3328,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                     }
                   ]
                 }
@@ -3567,7 +3567,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"key_0\": 2276\n}",
+                  "raw": "{\n  \"key_0\": false,\n  \"key_1\": 1699,\n  \"key_2\": 7941.678898799764\n}",
                   "options": {
                     "raw": {
                       "headerFamily": "json",
@@ -3609,7 +3609,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"key_0\": 2276\n}",
+                      "raw": "{\n  \"key_0\": false,\n  \"key_1\": 1699,\n  \"key_2\": 7941.678898799764\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -3661,7 +3661,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"key_0\": 2276\n}",
+                      "raw": "{\n  \"key_0\": false,\n  \"key_1\": 1699,\n  \"key_2\": 7941.678898799764\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -3690,7 +3690,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        \"string\",\n        5471\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3328,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                 }
               ]
             }
@@ -3846,7 +3846,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        \"string\",\n        5471\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3328,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                 }
               ]
             }
@@ -3969,7 +3969,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"text_size\": \"string\",\n  \"translation_language\": \"string\",\n  \"show_translation\": null,\n  \"audio_voice\": null,\n  \"playback_speed\": null,\n  \"auto_play_next\": true,\n  \"notifications_enabled\": false,\n  \"daily_reminder_time\": \"string\",\n  \"theme\": null,\n  \"language\": \"string\",\n  \"show_on_leaderboard\": null,\n  \"profile_visibility\": null\n}",
+                  "raw": "{\n  \"text_size\": null,\n  \"translation_language\": \"string\",\n  \"show_translation\": false,\n  \"audio_voice\": \"string\",\n  \"playback_speed\": 9116.371438336962,\n  \"auto_play_next\": null,\n  \"notifications_enabled\": true,\n  \"daily_reminder_time\": null,\n  \"theme\": \"string\",\n  \"language\": null,\n  \"show_on_leaderboard\": false,\n  \"profile_visibility\": \"string\"\n}",
                   "options": {
                     "raw": {
                       "headerFamily": "json",
@@ -4011,7 +4011,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"text_size\": \"string\",\n  \"translation_language\": \"string\",\n  \"show_translation\": null,\n  \"audio_voice\": null,\n  \"playback_speed\": null,\n  \"auto_play_next\": true,\n  \"notifications_enabled\": false,\n  \"daily_reminder_time\": \"string\",\n  \"theme\": null,\n  \"language\": \"string\",\n  \"show_on_leaderboard\": null,\n  \"profile_visibility\": null\n}",
+                      "raw": "{\n  \"text_size\": null,\n  \"translation_language\": \"string\",\n  \"show_translation\": false,\n  \"audio_voice\": \"string\",\n  \"playback_speed\": 9116.371438336962,\n  \"auto_play_next\": null,\n  \"notifications_enabled\": true,\n  \"daily_reminder_time\": null,\n  \"theme\": \"string\",\n  \"language\": null,\n  \"show_on_leaderboard\": false,\n  \"profile_visibility\": \"string\"\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -4063,7 +4063,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"text_size\": \"string\",\n  \"translation_language\": \"string\",\n  \"show_translation\": null,\n  \"audio_voice\": null,\n  \"playback_speed\": null,\n  \"auto_play_next\": true,\n  \"notifications_enabled\": false,\n  \"daily_reminder_time\": \"string\",\n  \"theme\": null,\n  \"language\": \"string\",\n  \"show_on_leaderboard\": null,\n  \"profile_visibility\": null\n}",
+                      "raw": "{\n  \"text_size\": null,\n  \"translation_language\": \"string\",\n  \"show_translation\": false,\n  \"audio_voice\": \"string\",\n  \"playback_speed\": 9116.371438336962,\n  \"auto_play_next\": null,\n  \"notifications_enabled\": true,\n  \"daily_reminder_time\": null,\n  \"theme\": \"string\",\n  \"language\": null,\n  \"show_on_leaderboard\": false,\n  \"profile_visibility\": \"string\"\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -4092,7 +4092,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        \"string\",\n        5471\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3328,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
                 }
               ]
             }
@@ -4210,7 +4210,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"key_0\": 4012,\n  \"key_1\": \"string\",\n  \"key_2\": \"string\",\n  \"key_3\": 9881.924087813368,\n  \"key_4\": \"string\"\n}",
+                  "raw": "{\n  \"key_0\": \"string\",\n  \"key_1\": 5367.443420872962,\n  \"key_2\": true,\n  \"key_3\": true\n}",
                   "options": {
                     "raw": {
                       "headerFamily": "json",
@@ -4252,7 +4252,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"key_0\": 4012,\n  \"key_1\": \"string\",\n  \"key_2\": \"string\",\n  \"key_3\": 9881.924087813368,\n  \"key_4\": \"string\"\n}",
+                      "raw": "{\n  \"key_0\": \"string\",\n  \"key_1\": 5367.443420872962,\n  \"key_2\": true,\n  \"key_3\": true\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -4304,7 +4304,7 @@
                     ],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n  \"key_0\": 4012,\n  \"key_1\": \"string\",\n  \"key_2\": \"string\",\n  \"key_3\": 9881.924087813368,\n  \"key_4\": \"string\"\n}",
+                      "raw": "{\n  \"key_0\": \"string\",\n  \"key_1\": 5367.443420872962,\n  \"key_2\": true,\n  \"key_3\": true\n}",
                       "options": {
                         "raw": {
                           "headerFamily": "json",
@@ -4333,7 +4333,203 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        \"string\",\n        5471\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                  "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3328,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "voice",
+      "item": [
+        {
+          "name": "api",
+          "item": [
+            {
+              "name": "recite",
+              "item": [
+                {
+                  "name": "evaluate",
+                  "item": [
+                    {
+                      "name": "Evaluate Recitation Rest",
+                      "request": {
+                        "auth": {
+                          "type": "oauth2",
+                          "oauth2": [
+                            {
+                              "key": "accessTokenUrl",
+                              "value": "/auth/login",
+                              "type": "string"
+                            },
+                            {
+                              "key": "grant_type",
+                              "value": "password_credentials",
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "method": "POST",
+                        "header": [
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "url": {
+                          "raw": "{{baseUrl}}/voice/api/recite/evaluate?surah_number=5068&ayah_start=703&ayah_end=7824&audio_base64=string",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "voice",
+                            "api",
+                            "recite",
+                            "evaluate"
+                          ],
+                          "query": [
+                            {
+                              "key": "surah_number",
+                              "value": "5068"
+                            },
+                            {
+                              "key": "ayah_start",
+                              "value": "703"
+                            },
+                            {
+                              "key": "ayah_end",
+                              "value": "7824"
+                            },
+                            {
+                              "key": "audio_base64",
+                              "value": "string"
+                            }
+                          ]
+                        },
+                        "description": "REST endpoint for one-shot recitation evaluation.\nUse this for testing or if WebSocket is not available.\n\n**Request Body:**\n```json\n{\n    \"surah_number\": 1,\n    \"ayah_start\": 1,\n    \"ayah_end\": 3,\n    \"audio_base64\": \"base64-encoded-wav-audio\"\n}\n```"
+                      },
+                      "response": [
+                        {
+                          "name": "Successful Response",
+                          "originalRequest": {
+                            "method": "POST",
+                            "header": [
+                              {
+                                "key": "Accept",
+                                "value": "application/json"
+                              },
+                              {
+                                "description": "Added as a part of security scheme: oauth2",
+                                "key": "Authorization",
+                                "value": "<token>"
+                              }
+                            ],
+                            "url": {
+                              "raw": "{{baseUrl}}/voice/api/recite/evaluate?surah_number=5068&ayah_start=703&ayah_end=7824&audio_base64=string",
+                              "host": [
+                                "{{baseUrl}}"
+                              ],
+                              "path": [
+                                "voice",
+                                "api",
+                                "recite",
+                                "evaluate"
+                              ],
+                              "query": [
+                                {
+                                  "key": "surah_number",
+                                  "value": "5068"
+                                },
+                                {
+                                  "key": "ayah_start",
+                                  "value": "703"
+                                },
+                                {
+                                  "key": "ayah_end",
+                                  "value": "7824"
+                                },
+                                {
+                                  "key": "audio_base64",
+                                  "value": "string"
+                                }
+                              ]
+                            }
+                          },
+                          "status": "OK",
+                          "code": 200,
+                          "_postman_previewlanguage": "json",
+                          "header": [
+                            {
+                              "key": "Content-Type",
+                              "value": "application/json"
+                            }
+                          ],
+                          "cookie": [],
+                          "body": ""
+                        },
+                        {
+                          "name": "Validation Error",
+                          "originalRequest": {
+                            "method": "POST",
+                            "header": [
+                              {
+                                "key": "Accept",
+                                "value": "application/json"
+                              },
+                              {
+                                "description": "Added as a part of security scheme: oauth2",
+                                "key": "Authorization",
+                                "value": "<token>"
+                              }
+                            ],
+                            "url": {
+                              "raw": "{{baseUrl}}/voice/api/recite/evaluate?surah_number=5068&ayah_start=703&ayah_end=7824&audio_base64=string",
+                              "host": [
+                                "{{baseUrl}}"
+                              ],
+                              "path": [
+                                "voice",
+                                "api",
+                                "recite",
+                                "evaluate"
+                              ],
+                              "query": [
+                                {
+                                  "key": "surah_number",
+                                  "value": "5068"
+                                },
+                                {
+                                  "key": "ayah_start",
+                                  "value": "703"
+                                },
+                                {
+                                  "key": "ayah_end",
+                                  "value": "7824"
+                                },
+                                {
+                                  "key": "audio_base64",
+                                  "value": "string"
+                                }
+                              ]
+                            }
+                          },
+                          "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+                          "code": 422,
+                          "_postman_previewlanguage": "json",
+                          "header": [
+                            {
+                              "key": "Content-Type",
+                              "value": "application/json"
+                            }
+                          ],
+                          "cookie": [],
+                          "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        3328,\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+                        }
+                      ]
+                    }
+                  ]
                 }
               ]
             }
@@ -4382,6 +4578,67 @@
                   ],
                   "path": [
                     ""
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "description": "Health check endpoint"
+          },
+          "response": [
+            {
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/health",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "health"
                   ]
                 }
               },

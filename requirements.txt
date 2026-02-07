@@ -17,3 +17,13 @@ requests
 
 #payment 
 stripe
+
+# OpenAI for Whisper STT
+openai>=1.10.0
+
+# Audio Processing
+numpy>=1.24.0
+scipy>=1.11.0
+
+# HTTP Client (for async requests)
+httpx>=0.26.0
