@@ -6,9 +6,12 @@ from typing import Optional
 
 from app.database import get_db
 from app.models import User
-from app.auth import SECRET_KEY, ALGORITHM  # or from app.config - pick one
+from app.config import SECRET_KEY
+from app.auth import ALGORITHM
+ # or from app.config - pick one
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
+
 
 
 def get_current_user(

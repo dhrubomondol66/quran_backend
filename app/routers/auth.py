@@ -5,6 +5,7 @@ from app.database import get_db
 from app import schemas, crud, auth
 from app.email_utils import send_email, get_verification_email_template, get_welcome_email_template, get_password_reset_email_template, get_password_changed_email_template
 from google.oauth2 import id_token
+from fastapi.security import OAuth2PasswordRequestForm
 from google.auth.transport.requests import Request
 import os
 
@@ -212,7 +213,33 @@ def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
         "access_token": token,
         "token_type": "bearer"
     }
-    
+
+@router.post("/token", response_model=schemas.Token)
+def token(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db),
+):
+    """
+    OAuth2 password flow token endpoint for Swagger UI.
+    Swagger sends: username/password as form-urlencoded.
+    We'll treat username as email.
+    """
+    db_user = crud.get_user_by_email(db, form_data.username)
+    if not db_user:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    if not auth.verify_password(form_data.password, db_user.hashed_password):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    if not db_user.is_email_verified:
+        raise HTTPException(
+            status_code=403,
+            detail="Email not verified. Please check your email for verification link.",
+        )
+
+    access_token = auth.create_access_token({"sub": str(db_user.id)})
+    return {"access_token": access_token, "token_type": "bearer"}
+
 @router.post("/forgot-password")
 async def forgot_password(
     request: schemas.PasswordResetRequest,
