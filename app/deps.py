@@ -8,7 +8,6 @@ from app.database import get_db
 from app.models import User
 from app.config import SECRET_KEY
 from app.auth import ALGORITHM
- # or from app.config - pick one
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 
