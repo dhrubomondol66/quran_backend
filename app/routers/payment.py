@@ -196,12 +196,18 @@ def handle_checkout_session_completed(session, db: Session):
     if session.get('subscription'):
         user.stripe_subscription_id = session['subscription']
     
-    # Record payment
+    # Record payment - FIX: Get payment_intent_id correctly
+    payment_intent_id = (
+        session.get('payment_intent') or 
+        session.get('id') or 
+        f"checkout_{session.get('id', 'unknown')}"
+    )
+    
     payment = Payment(
         user_id=user_id,
-        stripe_payment_intent_id=session.get('payment_intent', session['id']),
-        amount=session['amount_total'],
-        currency=session['currency'],
+        stripe_payment_intent_id=payment_intent_id,
+        amount=session.get('amount_total', 0),
+        currency=session.get('currency', 'usd'),
         status='succeeded',
         plan_type=plan_type
     )
