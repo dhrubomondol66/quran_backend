@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Voice WebSocket</title>
+</head>
+<body>
+    <h2>Voice Recording Test</h2>
+    <button id="start">Start Recording</button>
+    <button id="stop" disabled>Stop Recording</button>
+    <div id="status">Not connected</div>
+    <div id="result"></div>
+
+    <script>
+        let ws;
+        let mediaRecorder;
+        let audioChunks = [];
+
+        document.getElementById('start').onclick = async () => {
+            // Connect WebSocket
+            ws = new WebSocket('ws://localhost:8000/voice/ws/recite?surah_number=1&ayah_start=1');
+            
+            ws.onopen = () => {
+                document.getElementById('status').textContent = 'Connected!';
+                console.log('WebSocket connected');
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                console.log('Received:', data);
+                document.getElementById('result').innerHTML += `<p>${data.type}: ${JSON.stringify(data)}</p>`;
+                
+                if (data.type === 'ready') {
+                    startRecording();
+                }
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                document.getElementById('status').textContent = 'Error: ' + error;
+            };
+        };
+
+        async function startRecording() {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            
+            mediaRecorder.ondataavailable = (event) => {
+                audioChunks.push(event.data);
+            };
+
+            mediaRecorder.start();
+            document.getElementById('start').disabled = true;
+            document.getElementById('stop').disabled = false;
+            document.getElementById('status').textContent = 'Recording...';
+        }
+
+        document.getElementById('stop').onclick = () => {
+            mediaRecorder.stop();
+            
+            mediaRecorder.onstop = async () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                const reader = new FileReader();
+                
+                reader.onloadend = () => {
+                    const base64 = reader.result.split(',')[1];
+                    ws.send(JSON.stringify({
+                        type: 'audio_chunk',
+                        data: base64,
+                        is_final: true
+                    }));
+                    
+                    document.getElementById('status').textContent = 'Processing...';
+                };
+                
+                reader.readAsDataURL(audioBlob);
+                audioChunks = [];
+            };
+
+            document.getElementById('start').disabled = false;
+            document.getElementById('stop').disabled = true;
+        };
+    </script>
+</body>
+</html>

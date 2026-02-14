@@ -11,7 +11,7 @@ from app.routers.progress import router as progress_router
 from app.routers.leaderboard import router as leaderboard_router  
 from app.routers.settings import router as settings_router  
 from app.routers.voice_router import router as voice_router
-
+from app.routers.community import router as community_router
 
 app = FastAPI(title="Quran Recitation API")
 
@@ -38,6 +38,7 @@ app.include_router(progress_router, prefix="/progress", tags=["Progress"])
 app.include_router(leaderboard_router, prefix="/leaderboard", tags=["Leaderboard"]) 
 app.include_router(settings_router, prefix="/user", tags=["Settings"])  
 app.include_router(voice_router, prefix="/voice", tags=["Voice"])
+app.include_router(community_router, prefix="/community", tags=["Community"])
 
 @app.get("/")
 def read_root():

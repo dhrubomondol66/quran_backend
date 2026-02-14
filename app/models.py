@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Float, Integer, String, Text, ForeignKey, DateTime, Boolean, Enum
+from sqlalchemy import Column, Float, Integer, String, Text, ForeignKey, DateTime, Boolean, Enum, UniqueConstraint
 from app.database import Base
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -218,4 +218,68 @@ class UserSettings(Base):
 # Add these to your existing User model:
 User.progress = relationship("UserProgress", back_populates="user", uselist=False)
 User.settings = relationship("UserSettings", back_populates="user", uselist=False)
+
+class InvitationStatus(str, enum.Enum):
+    PENDING = "pending"
+    ACCEPTED = "accepted"
+    DECLINED = "declined"
+
+
+class CommunityRole(str, enum.Enum):
+    CREATOR = "creator"
+    ADMIN = "admin"
+    MEMBER = "member"
+
+
+class Community(Base):
+    __tablename__ = "communities"
     
+    id = Column(Integer, primary_key=True)
+    name = Column(String(100), nullable=False)
+    description = Column(Text, nullable=True)
+    created_by = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    is_private = Column(Boolean, default=True)
+    max_members = Column(Integer, default=100)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, onupdate=datetime.utcnow)
+    
+    creator = relationship("User", foreign_keys=[created_by], backref="owned_communities")
+    members = relationship("CommunityMember", back_populates="community", cascade="all, delete-orphan")
+    invitations = relationship("CommunityInvitation", back_populates="community", cascade="all, delete-orphan")
+
+
+class CommunityMember(Base):
+    __tablename__ = "community_members"
+    
+    id = Column(Integer, primary_key=True)
+    community_id = Column(Integer, ForeignKey("communities.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    role = Column(Enum(CommunityRole), nullable=False, default=CommunityRole.MEMBER)
+    joined_at = Column(DateTime, default=datetime.utcnow)
+    
+    community = relationship("Community", back_populates="members")
+    user = relationship("User", backref="community_memberships")
+    
+    __table_args__ = (
+        UniqueConstraint('community_id', 'user_id', name='unique_community_member'),
+    )
+
+
+class CommunityInvitation(Base):
+    __tablename__ = "community_invitations"
+    
+    id = Column(Integer, primary_key=True)
+    community_id = Column(Integer, ForeignKey("communities.id", ondelete="CASCADE"), nullable=False)
+    invited_by = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    invited_user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    status = Column(Enum(InvitationStatus), nullable=False, default=InvitationStatus.PENDING)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, onupdate=datetime.utcnow)
+    
+    community = relationship("Community", back_populates="invitations")
+    inviter = relationship("User", foreign_keys=[invited_by], backref="sent_invitations")
+    invitee = relationship("User", foreign_keys=[invited_user_id], backref="received_invitations")
+    
+    __table_args__ = (
+        UniqueConstraint('community_id', 'invited_user_id', name='unique_community_invitation'),
+    )
