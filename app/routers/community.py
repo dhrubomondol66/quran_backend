@@ -100,6 +100,19 @@ class InvitationResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class JoinRequestResponse(BaseModel):
+    """Join request info"""
+    id: int
+    community_id: int
+    community_name: str
+    requester_id: int
+    requester_name: str
+    requester_email: str
+    status: str
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
 
 # ============================================================================
 # COMMUNITY CRUD
@@ -161,6 +174,56 @@ def get_my_communities(
     
     return communities
 
+@router.get("/communities/browse", response_model=List[CommunityResponse])
+def browse_communities(
+    search: Optional[str] = Query(None),
+    limit: int = Query(20, ge=1, le=100),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Browse available communities
+    
+    Shows:
+    - Public communities (is_private = false)
+    - Communities user is already a member of
+    
+    Optionally filter by name search
+    """
+    
+    # Get communities user is already a member of
+    user_community_ids = [
+        m.community_id for m in 
+        db.query(CommunityMember).filter(
+            CommunityMember.user_id == current_user.id
+        ).all()
+    ]
+    
+    # Build query for communities
+    query = db.query(Community).filter(
+        or_(
+            Community.is_private == False,  # Public communities
+            Community.id.in_(user_community_ids)  # User's communities
+        )
+    )
+    
+    # Add search filter if provided
+    if search:
+        query = query.filter(
+            or_(
+                Community.name.ilike(f"%{search}%"),
+                Community.description.ilike(f"%{search}%")
+            )
+        )
+    
+    communities = query.order_by(desc(Community.created_at)).limit(limit).all()
+    
+    # Format response
+    result = []
+    for community in communities:
+        result.append(_format_community_response(community, current_user.id, db))
+    
+    return result
 
 @router.get("/communities/{community_id}", response_model=CommunityResponse)
 def get_community(
@@ -711,7 +774,265 @@ def get_community_leaderboard(
         "total_members": len(member_ids)
     }
 
+@router.post("/communities/{community_id}/join-request")
+def send_join_request(
+    community_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Send a join request to a community
+    
+    User clicks "Join" on a community, request goes to creator
+    """
+    
+    community = db.query(Community).filter(Community.id == community_id).first()
+    if not community:
+        raise HTTPException(status_code=404, detail="Community not found")
+    
+    # Check if user is already a member
+    existing_member = db.query(CommunityMember).filter(
+        CommunityMember.community_id == community_id,
+        CommunityMember.user_id == current_user.id
+    ).first()
+    
+    if existing_member:
+        raise HTTPException(status_code=400, detail="Already a member of this community")
+    
+    # Check if join request already exists
+    existing_request = db.query(CommunityInvitation).filter(
+        CommunityInvitation.community_id == community_id,
+        CommunityInvitation.invited_user_id == current_user.id
+    ).first()
+    
+    if existing_request:
+        if existing_request.status == InvitationStatus.PENDING:
+            raise HTTPException(status_code=400, detail="Join request already sent")
+        elif existing_request.status == InvitationStatus.DECLINED:
+            # Allow re-requesting after decline
+            existing_request.status = InvitationStatus.PENDING
+            existing_request.created_at = datetime.utcnow()
+            existing_request.invited_by = current_user.id  # User is requesting (inviting themselves)
+            db.commit()
+            db.refresh(existing_request)
+            return {
+                "success": True,
+                "message": "Join request sent",
+                "request_id": existing_request.id
+            }
+    
+    # Check member limit
+    current_members = db.query(CommunityMember).filter(
+        CommunityMember.community_id == community_id
+    ).count()
+    
+    if current_members >= community.max_members:
+        raise HTTPException(status_code=400, detail="Community is full")
+    
+    # Create join request (invitation from user to themselves)
+    join_request = CommunityInvitation(
+        community_id=community_id,
+        invited_by=current_user.id,  # User is the one requesting
+        invited_user_id=current_user.id,
+        status=InvitationStatus.PENDING
+    )
+    db.add(join_request)
+    db.commit()
+    db.refresh(join_request)
+    
+    return {
+        "success": True,
+        "message": f"Join request sent to {community.name}",
+        "request_id": join_request.id
+    }
 
+
+@router.get("/communities/{community_id}/join-requests", response_model=List[JoinRequestResponse])
+def get_join_requests(
+    community_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get all pending join requests for a community (creator/admin only)
+    
+    Shows list of users who want to join the community
+    """
+    
+    community = db.query(Community).filter(Community.id == community_id).first()
+    if not community:
+        raise HTTPException(status_code=404, detail="Community not found")
+    
+    # Only creator can view join requests
+    if community.created_by != current_user.id:
+        raise HTTPException(status_code=403, detail="Only creator can view join requests")
+    
+    # Get all pending requests where user is requesting to join
+    # (invited_by == invited_user_id means it's a join request)
+    requests = db.query(CommunityInvitation).filter(
+        CommunityInvitation.community_id == community_id,
+        CommunityInvitation.status == InvitationStatus.PENDING,
+        CommunityInvitation.invited_by == CommunityInvitation.invited_user_id  # Self-invitation = join request
+    ).order_by(desc(CommunityInvitation.created_at)).all()
+    
+    result = []
+    for request in requests:
+        user = db.query(User).filter(User.id == request.invited_user_id).first()
+        if user:
+            result.append(JoinRequestResponse(
+                id=request.id,
+                community_id=community.id,
+                community_name=community.name,
+                requester_id=user.id,
+                requester_name=f"{user.first_name or ''} {user.last_name or ''}".strip() or user.email.split('@')[0],
+                requester_email=user.email,
+                status=request.status.value,
+                created_at=request.created_at
+            ))
+    
+    return result
+
+
+@router.post("/communities/{community_id}/join-requests/{request_id}/approve")
+def approve_join_request(
+    community_id: int,
+    request_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Approve a join request (creator only)
+    
+    Adds the user to the community
+    """
+    
+    community = db.query(Community).filter(Community.id == community_id).first()
+    if not community:
+        raise HTTPException(status_code=404, detail="Community not found")
+    
+    # Only creator can approve
+    if community.created_by != current_user.id:
+        raise HTTPException(status_code=403, detail="Only creator can approve join requests")
+    
+    # Get the join request
+    join_request = db.query(CommunityInvitation).filter(
+        CommunityInvitation.id == request_id,
+        CommunityInvitation.community_id == community_id
+    ).first()
+    
+    if not join_request:
+        raise HTTPException(status_code=404, detail="Join request not found")
+    
+    if join_request.status != InvitationStatus.PENDING:
+        raise HTTPException(status_code=400, detail="Join request is not pending")
+    
+    # Check member limit
+    current_members = db.query(CommunityMember).filter(
+        CommunityMember.community_id == community_id
+    ).count()
+    
+    if current_members >= community.max_members:
+        raise HTTPException(status_code=400, detail="Community is full")
+    
+    # Add user to community
+    membership = CommunityMember(
+        community_id=community_id,
+        user_id=join_request.invited_user_id,
+        role=CommunityRole.MEMBER
+    )
+    db.add(membership)
+    
+    # Update request status
+    join_request.status = InvitationStatus.ACCEPTED
+    join_request.updated_at = datetime.utcnow()
+    
+    db.commit()
+    
+    user = db.query(User).filter(User.id == join_request.invited_user_id).first()
+    
+    return {
+        "success": True,
+        "message": f"Approved {user.email} to join {community.name}",
+        "user_id": user.id,
+        "community_id": community.id
+    }
+
+
+@router.post("/communities/{community_id}/join-requests/{request_id}/reject")
+def reject_join_request(
+    community_id: int,
+    request_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Reject a join request (creator only)
+    
+    User will not be added to the community
+    """
+    
+    community = db.query(Community).filter(Community.id == community_id).first()
+    if not community:
+        raise HTTPException(status_code=404, detail="Community not found")
+    
+    # Only creator can reject
+    if community.created_by != current_user.id:
+        raise HTTPException(status_code=403, detail="Only creator can reject join requests")
+    
+    # Get the join request
+    join_request = db.query(CommunityInvitation).filter(
+        CommunityInvitation.id == request_id,
+        CommunityInvitation.community_id == community_id
+    ).first()
+    
+    if not join_request:
+        raise HTTPException(status_code=404, detail="Join request not found")
+    
+    if join_request.status != InvitationStatus.PENDING:
+        raise HTTPException(status_code=400, detail="Join request is not pending")
+    
+    # Reject the request
+    join_request.status = InvitationStatus.DECLINED
+    join_request.updated_at = datetime.utcnow()
+    db.commit()
+    
+    return {
+        "success": True,
+        "message": "Join request rejected"
+    }
+
+
+@router.get("/my-join-requests", response_model=List[JoinRequestResponse])
+def get_my_join_requests(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Get all join requests sent by current user
+    
+    Shows status of communities user has requested to join
+    """
+    
+    requests = db.query(CommunityInvitation).filter(
+        CommunityInvitation.invited_user_id == current_user.id,
+        CommunityInvitation.invited_by == current_user.id  # Self-invitation = join request
+    ).order_by(desc(CommunityInvitation.created_at)).all()
+    
+    result = []
+    for request in requests:
+        community = request.community
+        result.append(JoinRequestResponse(
+            id=request.id,
+            community_id=community.id,
+            community_name=community.name,
+            requester_id=current_user.id,
+            requester_name="You",
+            requester_email=current_user.email,
+            status=request.status.value,
+            created_at=request.created_at
+        ))
+    
+    return result
 # ============================================================================
 # HELPER FUNCTIONS
 # ============================================================================
