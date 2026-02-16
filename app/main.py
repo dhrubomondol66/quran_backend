@@ -12,6 +12,7 @@ from app.routers.leaderboard import router as leaderboard_router
 from app.routers.settings import router as settings_router  
 from app.routers.voice_router import router as voice_router
 from app.routers.community import router as community_router
+from app.routers.analytics import router as analytics_router
 
 app = FastAPI(title="Quran Recitation API")
 
@@ -39,6 +40,7 @@ app.include_router(leaderboard_router, prefix="/leaderboard", tags=["Leaderboard
 app.include_router(settings_router, prefix="/user", tags=["Settings"])  
 app.include_router(voice_router, prefix="/voice", tags=["Voice"])
 app.include_router(community_router, prefix="/community", tags=["Community"])
+app.include_router(analytics_router, prefix="/analytics", tags=["Analytics"])
 
 @app.get("/")
 def read_root():

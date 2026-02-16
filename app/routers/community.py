@@ -650,14 +650,19 @@ def leave_community(
 @router.get("/communities/{community_id}/leaderboard")
 def get_community_leaderboard(
     community_id: int,
-    limit: int = Query(100, ge=1, le=100),
+    limit: int = Query(100, ge=1, le=100, description="Number of users to return (max 100)"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
     Get leaderboard for a specific community
     
-    Shows rankings of all community members
+    Returns:
+    - top_3: Highlighted top 3 users in community
+    - rankings: Full list (up to 100 community members)
+    - current_user: Current user's rank within community
+    - total_participants: Community members on leaderboard
+    - total_members: Total community members
     """
     
     # Check if user is member
@@ -676,11 +681,13 @@ def get_community_leaderboard(
     
     if not member_ids:
         return {
+            "community_id": community.id,
             "community_name": community.name,
-            "message": "No members in community yet",
+            "top_3": [],
             "rankings": [],
             "current_user": None,
-            "total_participants": 0
+            "total_participants": 0,
+            "total_members": 0
         }
     
     # Get rankings for community members only
@@ -713,6 +720,7 @@ def get_community_leaderboard(
     
     # Format rankings
     rankings = []
+    top_3 = []
     user_rank = None
     
     for idx, row in enumerate(rankings_query, start=1):
@@ -729,10 +737,15 @@ def get_community_leaderboard(
         
         rankings.append(user_data)
         
+        # Top 3
+        if idx <= 3:
+            top_3.append(user_data)
+        
+        # Current user
         if row.id == current_user.id:
             user_rank = user_data
     
-    # If current user not in rankings
+    # If current user not in top 100
     if not user_rank:
         current_progress = db.query(UserProgress).filter(
             UserProgress.user_id == current_user.id
@@ -748,7 +761,13 @@ def get_community_leaderboard(
                     User.id.in_(member_ids),
                     UserProgress.total_recitation_attempts >= MIN_RECITATIONS,
                     UserSettings.show_on_leaderboard == True,
-                    UserProgress.average_accuracy > current_progress.average_accuracy
+                    or_(
+                        UserProgress.average_accuracy > current_progress.average_accuracy,
+                        and_(
+                            UserProgress.average_accuracy == current_progress.average_accuracy,
+                            UserProgress.total_recitation_attempts > current_progress.total_recitation_attempts
+                        )
+                    )
                 )
             ).count()
             
@@ -768,6 +787,7 @@ def get_community_leaderboard(
     return {
         "community_id": community.id,
         "community_name": community.name,
+        "top_3": top_3,
         "rankings": rankings,
         "current_user": user_rank,
         "total_participants": len(rankings),

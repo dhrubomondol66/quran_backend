@@ -10,32 +10,24 @@ router = APIRouter()
 
 @router.get("/leaderboard")
 def get_leaderboard(
-    period: str = Query("all_time", pattern="^(all_time|this_week|this_month)$"),  # ✅ Fixed deprecation
-    limit: int = Query(100, ge=1, le=100),
+    limit: int = Query(100, ge=1, le=100, description="Number of users to return (max 100)"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
-    Get leaderboard rankings based on ACCURACY
+    Get global leaderboard
     
-    Ranking criteria (in order):
-    1. Average accuracy (primary)
-    2. Number of recitation attempts (tiebreaker)
-    3. Total time spent (secondary tiebreaker)
-    
-    Only users with at least 5 recitations are ranked
+    Returns:
+    - top_3: Highlighted top 3 users
+    - rankings: Full list (up to 100 users)
+    - current_user: Current user's rank and stats
+    - total_participants: Total users on leaderboard
     """
     
-    # Get current user's progress
-    current_user_progress = db.query(UserProgress).filter(
-        UserProgress.user_id == current_user.id
-    ).first()
-    
-    # Base query - only include users with sufficient recitations
     MIN_RECITATIONS = 5
     
-    # ✅ FIX: Join UserProgress -> User -> UserSettings
-    query = db.query(
+    # Query all eligible users
+    rankings_query = db.query(
         User.id,
         User.email,
         User.first_name,
@@ -45,28 +37,26 @@ def get_leaderboard(
         UserProgress.total_time_spent_seconds,
         UserProgress.current_streak
     ).join(
-        UserProgress, User.id == UserProgress.user_id  # Join User to UserProgress
+        UserProgress, User.id == UserProgress.user_id
     ).join(
-        UserSettings, User.id == UserSettings.user_id  # Join User to UserSettings
+        UserSettings, User.id == UserSettings.user_id
     ).filter(
         and_(
-            UserSettings.show_on_leaderboard == True,
-            UserProgress.total_recitation_attempts >= MIN_RECITATIONS
+            UserProgress.total_recitation_attempts >= MIN_RECITATIONS,
+            UserSettings.show_on_leaderboard == True
         )
-    )
-    
-    # Order by: accuracy DESC, then attempts DESC, then time DESC
-    leaderboard_data = query.order_by(
+    ).order_by(
         desc(UserProgress.average_accuracy),
         desc(UserProgress.total_recitation_attempts),
         desc(UserProgress.total_time_spent_seconds)
     ).limit(limit).all()
     
-    # Format response
+    # Format rankings
     rankings = []
+    top_3 = []
     user_rank = None
     
-    for idx, row in enumerate(leaderboard_data, start=1):
+    for idx, row in enumerate(rankings_query, start=1):
         user_data = {
             "rank": idx,
             "user_id": row.id,
@@ -76,80 +66,78 @@ def get_leaderboard(
             "total_recitations": row.total_recitation_attempts,
             "time_spent_hours": round(row.total_time_spent_seconds / 3600, 1),
             "streak": row.current_streak,
-            "rank_change": 0
+            "is_you": row.id == current_user.id
         }
         
         rankings.append(user_data)
         
-        # Track current user's rank
+        # Top 3
+        if idx <= 3:
+            top_3.append(user_data)
+        
+        # Current user
         if row.id == current_user.id:
             user_rank = user_data
     
-    # If current user not in top results, calculate their rank
-    if not user_rank and current_user_progress:
-        if current_user_progress.total_recitation_attempts >= MIN_RECITATIONS:
-            # ✅ FIX: Same join structure for counting
-            users_above = db.query(UserProgress).join(
+    # If current user not in top 100, find their rank
+    if not user_rank:
+        current_progress = db.query(UserProgress).filter(
+            UserProgress.user_id == current_user.id
+        ).first()
+        
+        if current_progress and current_progress.total_recitation_attempts >= MIN_RECITATIONS:
+            # Count users with better accuracy
+            better_count = db.query(UserProgress).join(
                 User, UserProgress.user_id == User.id
             ).join(
                 UserSettings, User.id == UserSettings.user_id
             ).filter(
                 and_(
-                    UserSettings.show_on_leaderboard == True,
                     UserProgress.total_recitation_attempts >= MIN_RECITATIONS,
-                    UserProgress.average_accuracy > current_user_progress.average_accuracy
+                    UserSettings.show_on_leaderboard == True,
+                    or_(
+                        UserProgress.average_accuracy > current_progress.average_accuracy,
+                        and_(
+                            UserProgress.average_accuracy == current_progress.average_accuracy,
+                            UserProgress.total_recitation_attempts > current_progress.total_recitation_attempts
+                        )
+                    )
                 )
             ).count()
             
             user_rank = {
-                "rank": users_above + 1,
+                "rank": better_count + 1,
                 "user_id": current_user.id,
-                "name": f"{current_user.first_name or ''} {current_user.last_name or ''}".strip() or "You",
+                "name": "You",
                 "email": current_user.email,
-                "accuracy": round(current_user_progress.average_accuracy, 1),
-                "total_recitations": current_user_progress.total_recitation_attempts,
-                "time_spent_hours": round(current_user_progress.total_time_spent_seconds / 3600, 1),
-                "streak": current_user_progress.current_streak,
-                "rank_change": 0
+                "accuracy": round(current_progress.average_accuracy, 1),
+                "total_recitations": current_progress.total_recitation_attempts,
+                "time_spent_hours": round(current_progress.total_time_spent_seconds / 3600, 1),
+                "streak": current_progress.current_streak,
+                "is_you": True
             }
         else:
-            # User doesn't have enough recitations yet
             user_rank = {
                 "rank": None,
-                "message": f"Complete {MIN_RECITATIONS - current_user_progress.total_recitation_attempts} more recitations to join the leaderboard",
-                "accuracy": round(current_user_progress.average_accuracy, 1) if current_user_progress.average_accuracy else 0,
-                "total_recitations": current_user_progress.total_recitation_attempts
+                "message": f"Complete {MIN_RECITATIONS - (current_progress.total_recitation_attempts if current_progress else 0)} more recitations to join"
             }
-    elif not user_rank:
-        # User has no progress at all
-        user_rank = {
-            "rank": None,
-            "message": f"Complete {MIN_RECITATIONS} recitations to join the leaderboard",
-            "accuracy": 0,
-            "total_recitations": 0
-        }
     
-    # Get top 3 for podium display
-    top_3 = rankings[:3] if len(rankings) >= 3 else rankings
-    other_rankings = rankings[3:] if len(rankings) > 3 else []
-    
-    # ✅ FIX: Total participants count
+    # Get total participant count
     total_participants = db.query(UserProgress).join(
         User, UserProgress.user_id == User.id
     ).join(
         UserSettings, User.id == UserSettings.user_id
     ).filter(
         and_(
-            UserSettings.show_on_leaderboard == True,
-            UserProgress.total_recitation_attempts >= MIN_RECITATIONS
+            UserProgress.total_recitation_attempts >= MIN_RECITATIONS,
+            UserSettings.show_on_leaderboard == True
         )
     ).count()
     
     return {
-        "period": period,
-        "ranking_criteria": "Accuracy (minimum 5 recitations required)",
         "top_3": top_3,
-        "other_rankings": other_rankings,
+        "rankings": rankings,
         "current_user": user_rank,
-        "total_participants": total_participants
+        "total_participants": total_participants,
+        "min_recitations_required": MIN_RECITATIONS
     }
