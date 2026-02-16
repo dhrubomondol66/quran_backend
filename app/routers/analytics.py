@@ -1,15 +1,3 @@
-"""
-Activity Analytics Endpoints
-=============================
-Add these to your progress router or create a new analytics router
-
-Features:
-- Daily activity (hourly breakdown)
-- Weekly activity (day by day)
-- Monthly activity (week by week)
-- Activity streaks and summaries
-"""
-
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func, and_, extract
@@ -23,11 +11,6 @@ from app.models import User, UserActivity, UserProgress
 
 
 router = APIRouter()
-
-
-# ============================================================================
-# RESPONSE MODELS
-# ============================================================================
 
 class TimeActivity(BaseModel):
     """Activity at a specific time"""
@@ -85,10 +68,6 @@ class MonthlyActivityResponse(BaseModel):
     summary: str  # e.g., "You've read 18 hours this month"
 
 
-# ============================================================================
-# ENDPOINTS
-# ============================================================================
-
 @router.get("/activity/daily", response_model=DailyActivityResponse)
 def get_daily_activity(
     target_date: Optional[date] = Query(None, description="Date to get activity for (default: today)"),
@@ -138,8 +117,6 @@ def get_daily_activity(
             summary="No activity today yet"
         )
 
-    # Group activities by 15-minute time windows for cleaner display
-    # Store seconds in each window, then convert to minutes at the end
     time_windows: Dict[str, Dict[str, object]] = {}
 
     for activity in activities:
@@ -161,17 +138,14 @@ def get_daily_activity(
         time_windows[time_key]["seconds"] = int(time_windows[time_key]["seconds"]) + int(activity.duration_seconds or 0)
         time_windows[time_key]["recitations"] = int(time_windows[time_key]["recitations"]) + 1
 
-    # Calculate totals (convert once, so you don't lose minutes due to per-activity flooring)
     total_seconds = sum(int(w["seconds"]) for w in time_windows.values())
     total_minutes = total_seconds // 60
     total_recitations = sum(int(w["recitations"]) for w in time_windows.values())
 
-    # Format activity times
     activity_times: List[TimeActivity] = []
     for _, data in sorted(time_windows.items(), key=lambda kv: kv[1]["timestamp"]):
         timestamp: datetime = data["timestamp"]  # type: ignore[assignment]
 
-        # Format time in 12-hour format with AM/PM
         time_12h = timestamp.strftime("%I:%M %p").lstrip("0")  # "6:30 AM" not "06:30 AM"
         time_24h = timestamp.strftime("%H:%M")  # For sorting
 
@@ -183,7 +157,6 @@ def get_daily_activity(
             timestamp=timestamp
         ))
 
-    # Generate summary
     if total_minutes == 0:
         summary = "No activity today yet"
     else:
@@ -222,12 +195,10 @@ def get_weekly_activity(
 
     week_end = week_start + timedelta(days=6)
 
-    # Get user progress
     user_progress = db.query(UserProgress).filter(
         UserProgress.user_id == current_user.id
     ).first()
 
-    # Query activities for the week
     start_datetime = datetime.combine(week_start, datetime.min.time())
     end_datetime = datetime.combine(week_end, datetime.max.time())
 
@@ -237,7 +208,6 @@ def get_weekly_activity(
         UserActivity.date <= end_datetime
     ).all()
 
-    # Calculate daily breakdown (store seconds, then convert once)
     daily_data: Dict[date, Dict[str, int]] = {}
     for day_offset in range(7):
         current_date = week_start + timedelta(days=day_offset)
@@ -257,7 +227,6 @@ def get_weekly_activity(
 
     total_minutes = total_seconds // 60
 
-    # Format daily breakdown
     day_names = ["M", "T", "W", "T", "F", "S", "S"]
     daily_breakdown: List[DayActivity] = []
 
@@ -306,19 +275,16 @@ def get_monthly_activity(
     if not year:
         year = date.today().year
 
-    # Calculate month boundaries
     first_day = date(year, month, 1)
     if month == 12:
         last_day = date(year + 1, 1, 1) - timedelta(days=1)
     else:
         last_day = date(year, month + 1, 1) - timedelta(days=1)
 
-    # Get user progress
     user_progress = db.query(UserProgress).filter(
         UserProgress.user_id == current_user.id
     ).first()
 
-    # Query activities for the month
     start_datetime = datetime.combine(first_day, datetime.min.time())
     end_datetime = datetime.combine(last_day, datetime.max.time())
 
@@ -328,7 +294,6 @@ def get_monthly_activity(
         UserActivity.date <= end_datetime
     ).all()
 
-    # Split month into weeks (starting from first day of month)
     weeks: List[Dict[str, object]] = []
     current_week_start = first_day
     week_number = 1
@@ -345,7 +310,6 @@ def get_monthly_activity(
         current_week_start = current_week_end + timedelta(days=1)
         week_number += 1
 
-    # Distribute activities into weeks (use seconds, convert once)
     total_seconds = 0
     total_recitations = 0
 
@@ -365,20 +329,18 @@ def get_monthly_activity(
 
     total_minutes = total_seconds // 60
 
-    # Format weekly breakdown
     weekly_breakdown = [
         WeekSummary(
             week_number=int(week["week_number"]),
             week_label=f"Week {int(week['week_number'])}",
-            week_start=week["week_start"],  # type: ignore[arg-type]
-            week_end=week["week_end"],      # type: ignore[arg-type]
+            week_start=week["week_start"], 
+            week_end=week["week_end"],     
             minutes=int(week["seconds"]) // 60,
             recitations=int(week["recitations"])
         )
         for week in weeks
     ]
 
-    # Generate summary (avoid "0 hours" when under 60 minutes)
     if total_minutes < 60:
         summary = f"You've read {total_minutes} minutes this month"
     else:
