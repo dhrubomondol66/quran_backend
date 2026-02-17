@@ -53,7 +53,6 @@ app.include_router(notification_router, prefix="/notifications", tags=["Notifica
 def start_scheduler():
     scheduler = BackgroundScheduler()
     
-    # Run every hour to check for expiring subscriptions
     scheduler.add_job(
         check_expiring_subscriptions,
         trigger="interval",
@@ -70,7 +69,6 @@ def start_scheduler():
 def read_root():
     return {"message": "Quran Recitation API - Premium audio recitations for Quran study"}
 
-# ✅ ADD THIS HEALTH ENDPOINT
 @app.get("/health")
 def health_check():
     """Health check endpoint"""
