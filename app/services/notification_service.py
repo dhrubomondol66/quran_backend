@@ -35,7 +35,6 @@ class NotificationService:
         db.commit()
         db.refresh(notification)
         
-        # Send push notification (if user has device tokens)
         NotificationService.send_push_notification(db, notification)
         
         return notification
@@ -54,10 +53,6 @@ class NotificationService:
             logger.info(f"No device tokens for user {notification.user_id}")
             return
         
-        # TODO: Implement actual push notification service
-        # This is where you'd integrate with Firebase, OneSignal, etc.
-        # For now, we'll just log it
-        
         logger.info(f"Would send push to {len(tokens)} devices for user {notification.user_id}")
         logger.info(f"Title: {notification.title}")
         logger.info(f"Message: {notification.message}")
@@ -74,7 +69,6 @@ class NotificationService:
         if not community:
             return
         
-        # Get all users except the creator
         all_users = db.query(User).filter(User.id != creator_id).all()
         
         title = "New Community Created!"
