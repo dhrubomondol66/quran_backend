@@ -1155,6 +1155,165 @@ def get_my_join_requests(
     
     return result
 
+@router.get("/communities-leaderboard")
+def get_communities_leaderboard(
+    limit: int = Query(100, ge=1, le=100, description="Number of communities to return (max 100)"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Global community leaderboard
+
+    Each community's score = sum of all members' individual scores
+    Individual score = (accuracy * 0.7) + (normalized_recitations * 0.3)
+
+    Returns:
+    - top_3: Top 3 highlighted communities
+    - rankings: Top 100 communities by score
+    - your_community: Current user's community rank (highest ranked community they belong to)
+    - total_communities: Total communities on leaderboard
+    """
+
+    MIN_RECITATIONS = 5
+
+    # Get all communities
+    all_communities = db.query(Community).all()
+
+    if not all_communities:
+        return {
+            "top_3": [],
+            "rankings": [],
+            "your_community": None,
+            "total_communities": 0,
+            "scoring": "Sum of members scores (70% accuracy + 30% recitations)"
+        }
+
+    # Get global max recitations for normalization (same baseline as global leaderboard)
+    from sqlalchemy import func as sqlfunc
+    max_rec_result = db.query(sqlfunc.max(UserProgress.total_recitation_attempts)).join(
+        UserSettings, UserProgress.user_id == UserSettings.user_id
+    ).filter(
+        UserProgress.total_recitation_attempts >= MIN_RECITATIONS,
+        UserSettings.show_on_leaderboard == True
+    ).scalar()
+
+    max_recitations = max_rec_result or 1
+
+    # Calculate score for each community
+    community_scores = []
+
+    for community in all_communities:
+        member_ids = [m.user_id for m in community.members]
+
+        if not member_ids:
+            continue
+
+        # Get eligible members
+        eligible = db.query(
+            UserProgress.average_accuracy,
+            UserProgress.total_recitation_attempts
+        ).join(
+            User, UserProgress.user_id == User.id
+        ).join(
+            UserSettings, User.id == UserSettings.user_id
+        ).filter(
+            User.id.in_(member_ids),
+            UserProgress.total_recitation_attempts >= MIN_RECITATIONS,
+            UserProgress.average_accuracy > 0,
+            UserSettings.show_on_leaderboard == True
+        ).all()
+
+        if not eligible:
+            continue
+
+        # Sum of all members' scores
+        total_score = 0
+        for member in eligible:
+            normalized_rec = (member.total_recitation_attempts / max_recitations) * 100
+            member_score = (member.average_accuracy * 0.7) + (normalized_rec * 0.3)
+            total_score += member_score
+
+        total_score = round(total_score, 2)
+        avg_score = round(total_score / len(eligible), 2)
+
+        # Get creator name
+        creator = db.query(User).filter(User.id == community.created_by).first()
+        creator_name = f"{creator.first_name or ''} {creator.last_name or ''}".strip() or creator.email.split('@')[0] if creator else "Unknown"
+
+        community_scores.append({
+            "community_id": community.id,
+            "community_name": community.name,
+            "description": community.description,
+            "total_score": total_score,
+            "avg_member_score": avg_score,
+            "active_members": len(eligible),
+            "total_members": len(member_ids),
+            "creator_name": creator_name,
+            "is_your_community": any(m.user_id == current_user.id for m in community.members)
+        })
+
+    # Sort by total score descending
+    community_scores.sort(key=lambda x: (x["total_score"], x["avg_member_score"]), reverse=True)
+
+    # Build rankings
+    rankings = []
+    top_3 = []
+    your_community = None
+
+    for idx, comm in enumerate(community_scores[:limit], start=1):
+        entry = {
+            "rank": idx,
+            "community_id": comm["community_id"],
+            "community_name": comm["community_name"],
+            "description": comm["description"],
+            "total_score": comm["total_score"],
+            "avg_member_score": comm["avg_member_score"],
+            "active_members": comm["active_members"],
+            "total_members": comm["total_members"],
+            "creator_name": comm["creator_name"],
+            "is_your_community": comm["is_your_community"]
+        }
+
+        rankings.append(entry)
+
+        if idx <= 3:
+            top_3.append(entry)
+
+        if comm["is_your_community"] and your_community is None:
+            your_community = entry
+
+    # If user's community outside top 100
+    if not your_community:
+        user_comm = next((c for c in community_scores if c["is_your_community"]), None)
+        if user_comm:
+            full_rank = next(
+                (i + 1 for i, c in enumerate(community_scores) if c["community_id"] == user_comm["community_id"]),
+                None
+            )
+            your_community = {
+                "rank": full_rank,
+                "community_id": user_comm["community_id"],
+                "community_name": user_comm["community_name"],
+                "total_score": user_comm["total_score"],
+                "avg_member_score": user_comm["avg_member_score"],
+                "active_members": user_comm["active_members"],
+                "total_members": user_comm["total_members"],
+                "is_your_community": True
+            }
+        else:
+            your_community = {
+                "rank": None,
+                "message": "Join or create a community to appear here"
+            }
+
+    return {
+        "top_3": top_3,
+        "rankings": rankings,
+        "your_community": your_community,
+        "total_communities": len(community_scores),
+        "scoring": "Sum of members scores (70% accuracy + 30% recitations)"
+    }
+
 # ============================================================================
 # HELPER FUNCTIONS
 # ============================================================================
