@@ -77,7 +77,7 @@ class NotificationService:
         # Get all users except the creator
         all_users = db.query(User).filter(User.id != creator_id).all()
         
-        title = "New Community Created! 🕌"
+        title = "New Community Created!"
         message = f"'{community.name}' community is now available. Join now!"
         
         for user in all_users:
@@ -97,7 +97,7 @@ class NotificationService:
     def notify_invite_accepted(db: Session, inviter_id: int, invitee_name: str, community_name: str):
         """Notify community creator when invite is accepted"""
         
-        title = "Invitation Accepted ✅"
+        title = "Invitation Accepted"
         message = f"{invitee_name} accepted your invitation to join '{community_name}'!"
         
         NotificationService.create_notification(
@@ -114,7 +114,7 @@ class NotificationService:
     def notify_invite_declined(db: Session, inviter_id: int, invitee_name: str, community_name: str):
         """Notify community creator when invite is declined"""
         
-        title = "Invitation Declined ❌"
+        title = "Invitation Declined"
         message = f"{invitee_name} declined your invitation to join '{community_name}'."
         
         NotificationService.create_notification(
@@ -131,7 +131,7 @@ class NotificationService:
     def notify_join_request(db: Session, creator_id: int, requester_name: str, community_name: str, request_id: int):
         """Notify creator when someone requests to join their community"""
         
-        title = "New Join Request 👋"
+        title = "New Join Request"
         message = f"{requester_name} wants to join '{community_name}'. Review their request!"
         
         NotificationService.create_notification(
@@ -148,7 +148,7 @@ class NotificationService:
     def notify_subscription_expiring(db: Session, user_id: int, days_remaining: int):
         """Notify user when subscription is expiring soon"""
         
-        title = "Subscription Expiring Soon ⏰"
+        title = "Subscription Expiring Soon"
         message = f"Your subscription expires in {days_remaining} day{'s' if days_remaining != 1 else ''}. Renew now to keep your premium features!"
         
         NotificationService.create_notification(

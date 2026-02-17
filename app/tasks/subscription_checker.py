@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from app.database import SessionLocal
-from app.models import User
+from app.models import SubscriptionStatus, User
 from app.services.notification_service import NotificationService
 from datetime import datetime, timedelta
 import logging
@@ -21,7 +21,7 @@ def check_expiring_subscriptions():
         expiring_users = db.query(User).filter(
             User.subscription_end_date >= tomorrow,
             User.subscription_end_date < day_after_tomorrow,
-            User.subscription_status == "active"
+            User.subscription_status == SubscriptionStatus.ACTIVE
         ).all()
         
         for user in expiring_users:

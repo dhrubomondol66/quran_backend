@@ -27,3 +27,6 @@ scipy>=1.11.0
 
 # HTTP Client (for async requests)
 httpx>=0.26.0
+
+#Scheduler for checking subscription time left
+apscheduler 

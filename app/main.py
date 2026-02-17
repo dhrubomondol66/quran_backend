@@ -14,6 +14,11 @@ from app.routers.voice_router import router as voice_router
 from app.routers.community import router as community_router
 from app.routers.analytics import router as analytics_router
 from app.routers.notification import router as notification_router
+from apscheduler.schedulers.background import BackgroundScheduler
+from app.tasks.subscription_checker import check_expiring_subscriptions
+import logging
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Quran Recitation API")
 
@@ -43,6 +48,23 @@ app.include_router(voice_router, prefix="/voice", tags=["Voice"])
 app.include_router(community_router, prefix="/community", tags=["Community"])
 app.include_router(analytics_router, prefix="/analytics", tags=["Analytics"])
 app.include_router(notification_router, prefix="/notifications", tags=["Notifications"])
+
+@app.on_event("startup")
+def start_scheduler():
+    scheduler = BackgroundScheduler()
+    
+    # Run every hour to check for expiring subscriptions
+    scheduler.add_job(
+        check_expiring_subscriptions,
+        trigger="interval",
+        hours=1,
+        id="subscription_checker",
+        name="Check expiring subscriptions"
+    )
+    
+    scheduler.start()
+    logger.info("Scheduler started - checking subscriptions every hour")
+
 
 @app.get("/")
 def read_root():
