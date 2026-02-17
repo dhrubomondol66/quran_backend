@@ -10,6 +10,7 @@ Features:
 - View community members
 - Remove members (creator only)
 - Community-specific leaderboard
+- Notifications for all community actions
 """
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -17,6 +18,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_, and_, desc, func
 from typing import List, Optional
 from datetime import datetime
+from app.services.notification_service import NotificationService
 
 from app.database import get_db
 from app.deps import get_current_user
@@ -150,6 +152,13 @@ def create_community(
     db.add(creator_membership)
     db.commit()
     db.refresh(new_community)
+    
+    # ✅ NOTIFY ALL USERS ABOUT NEW COMMUNITY
+    NotificationService.notify_community_created(
+        db=db,
+        community_id=new_community.id,
+        creator_id=current_user.id
+    )
     
     return _format_community_response(new_community, current_user.id, db)
 
@@ -467,6 +476,18 @@ def accept_invitation(
     
     db.commit()
     
+    # ✅ NOTIFY INVITER THAT INVITATION WAS ACCEPTED
+    invitee_name = f"{current_user.first_name or ''} {current_user.last_name or ''}".strip()
+    if not invitee_name:
+        invitee_name = current_user.email.split('@')[0]
+    
+    NotificationService.notify_invite_accepted(
+        db=db,
+        inviter_id=invitation.invited_by,
+        invitee_name=invitee_name,
+        community_name=community.name
+    )
+    
     return {
         "success": True,
         "message": f"Joined {community.name}",
@@ -501,6 +522,18 @@ def decline_invitation(
     invitation.status = InvitationStatus.DECLINED
     invitation.updated_at = datetime.utcnow()
     db.commit()
+    
+    # ✅ NOTIFY INVITER THAT INVITATION WAS DECLINED
+    decliner_name = f"{current_user.first_name or ''} {current_user.last_name or ''}".strip()
+    if not decliner_name:
+        decliner_name = current_user.email.split('@')[0]
+    
+    NotificationService.notify_invite_declined(
+        db=db,
+        inviter_id=invitation.invited_by,
+        invitee_name=decliner_name,
+        community_name=invitation.community.name
+    )
     
     return {
         "success": True,
@@ -835,6 +868,20 @@ def send_join_request(
             existing_request.invited_by = current_user.id  # User is requesting (inviting themselves)
             db.commit()
             db.refresh(existing_request)
+            
+            # ✅ NOTIFY CREATOR ABOUT RE-REQUESTED JOIN
+            requester_name = f"{current_user.first_name or ''} {current_user.last_name or ''}".strip()
+            if not requester_name:
+                requester_name = current_user.email.split('@')[0]
+            
+            NotificationService.notify_join_request(
+                db=db,
+                creator_id=community.created_by,
+                requester_name=requester_name,
+                community_name=community.name,
+                request_id=existing_request.id
+            )
+            
             return {
                 "success": True,
                 "message": "Join request sent",
@@ -859,6 +906,19 @@ def send_join_request(
     db.add(join_request)
     db.commit()
     db.refresh(join_request)
+    
+    # ✅ NOTIFY CREATOR ABOUT JOIN REQUEST
+    requester_name = f"{current_user.first_name or ''} {current_user.last_name or ''}".strip()
+    if not requester_name:
+        requester_name = current_user.email.split('@')[0]
+    
+    NotificationService.notify_join_request(
+        db=db,
+        creator_id=community.created_by,
+        requester_name=requester_name,
+        community_name=community.name,
+        request_id=join_request.id
+    )
     
     return {
         "success": True,
@@ -1053,6 +1113,7 @@ def get_my_join_requests(
         ))
     
     return result
+
 # ============================================================================
 # HELPER FUNCTIONS
 # ============================================================================

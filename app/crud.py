@@ -28,7 +28,7 @@ def get_user_by_verification_token(db: Session, token: str):
     """Get user by email verification token"""
     return db.query(User).filter(User.email_verification_token == token).first()
 
-def create_user(db: Session, email: str, password: str):
+def create_user(db: Session, email: str, password: str, first_name: str = None, last_name: str = None):
     """Create user with email and password (requires verification)"""
     
     # Generate verification token
@@ -39,10 +39,12 @@ def create_user(db: Session, email: str, password: str):
         email=email,
         hashed_password=hash_password(password),
         provider="local",
-        is_email_verified=False,  # ✅ Not verified initially
+        first_name=first_name,  
+        last_name=last_name,  
+        is_email_verified=False,
         email_verification_token=verification_token,
         verification_token_expires=token_expires,
-        subscription_status=SubscriptionStatus.FREE,  # ✅ THIS LINE
+        subscription_status=SubscriptionStatus.FREE,
     )
     db.add(user)
     db.commit()

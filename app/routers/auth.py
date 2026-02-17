@@ -26,7 +26,7 @@ async def register(
         raise HTTPException(status_code=400, detail="Email already registered")
     
     # Create user (unverified)
-    db_user = crud.create_user(db, user.email, user.password)
+    db_user = crud.create_user(db, user.email, user.password, user.first_name, user.last_name)
     
     # Send verification email in background
     verification_link = f"{FRONTEND_URL}/verify-email?token={db_user.email_verification_token}"

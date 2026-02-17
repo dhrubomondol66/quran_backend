@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Float, Integer, String, Text, ForeignKey, DateTime, Boolean, Enum, UniqueConstraint
+from sqlalchemy import Column, Float, Integer, String, Text, ForeignKey, DateTime, Boolean, Enum, UniqueConstraint, Enum as SQLEnum
 from app.database import Base
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -73,6 +73,8 @@ class User(Base):
     
     # Relationships
     payments = relationship("Payment", back_populates="user")
+    notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
+    device_tokens = relationship("DeviceToken", back_populates="user", cascade="all, delete-orphan")
 
 class Payment(Base):
     __tablename__ = "payments"
@@ -283,3 +285,61 @@ class CommunityInvitation(Base):
     __table_args__ = (
         UniqueConstraint('community_id', 'invited_user_id', name='unique_community_invitation'),
     )
+
+class NotificationType(enum.Enum):
+    """Types of notifications"""
+    COMMUNITY_CREATED = "community_created"
+    INVITE_ACCEPTED = "invite_accepted"
+    INVITE_DECLINED = "invite_declined"
+    JOIN_REQUEST = "join_request"
+    SUBSCRIPTION_EXPIRING = "subscription_expiring"
+    SUBSCRIPTION_EXPIRED = "subscription_expired"
+    COMMUNITY_JOINED = "community_joined"
+    REMOVED_FROM_COMMUNITY = "removed_from_community"
+
+
+class Notification(Base):
+    """User notifications"""
+    __tablename__ = "notifications"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    type = Column(SQLEnum(NotificationType, values_callable=lambda x: [e.value for e in x]), nullable=False)    
+    title = Column(String(255), nullable=False)
+    message = Column(Text, nullable=False)
+    
+    # Related entity (community_id, invitation_id, etc.)
+    related_entity_type = Column(String(50))  # "community", "invitation", "subscription"
+    related_entity_id = Column(Integer)
+    
+    # Notification state
+    is_read = Column(Boolean, default=False)
+    is_sent = Column(Boolean, default=False)  # For push notifications
+    
+    # Push notification token (if using Firebase/OneSignal)
+    push_token = Column(String(500))
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
+    read_at = Column(DateTime)
+    
+    # Relationships
+    user = relationship("User", back_populates="notifications")
+    
+    def __repr__(self):
+        return f"<Notification {self.id}: {self.type.value} for user {self.user_id}>"
+
+
+class DeviceToken(Base):
+    """Store user device tokens for push notifications"""
+    __tablename__ = "device_tokens"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    token = Column(String(500), nullable=False, unique=True)
+    device_type = Column(String(20))  # "ios", "android", "web"
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    last_used = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationship
+    user = relationship("User", back_populates="device_tokens")
