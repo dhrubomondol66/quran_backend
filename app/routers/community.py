@@ -23,7 +23,7 @@ from app.services.notification_service import NotificationService
 from app.database import get_db
 from app.deps import get_current_user
 from app.models import (
-    User, Community, CommunityMember, CommunityInvitation,
+    NotificationType, User, Community, CommunityMember, CommunityInvitation,
     InvitationStatus, CommunityRole, UserProgress, UserSettings
 )
 from pydantic import BaseModel
@@ -1030,6 +1030,16 @@ def approve_join_request(
     
     user = db.query(User).filter(User.id == join_request.invited_user_id).first()
     
+    NotificationService.create_notification(
+        db=db,
+        user_id=join_request.invited_user_id,
+        notification_type=NotificationType.COMMUNITY_JOINED,
+        title="Join Request Approved! ✅",
+        message=f"Your request to join '{community.name}' has been approved! Welcome!",
+        related_entity_type="community",
+        related_entity_id=community_id
+    )
+    
     return {
         "success": True,
         "message": f"Approved {user.email} to join {community.name}",
@@ -1075,6 +1085,16 @@ def reject_join_request(
     join_request.status = InvitationStatus.DECLINED
     join_request.updated_at = datetime.utcnow()
     db.commit()
+    
+    NotificationService.create_notification(
+        db=db,
+        user_id=join_request.invited_user_id,
+        notification_type=NotificationType.REMOVED_FROM_COMMUNITY,
+        title="Join Request Declined ❌",
+        message=f"Your request to join '{community.name}' was not approved at this time.",
+        related_entity_type="community",
+        related_entity_id=community_id
+    )
     
     return {
         "success": True,

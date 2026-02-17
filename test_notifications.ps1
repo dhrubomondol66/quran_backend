@@ -1,16 +1,16 @@
-# COMPLETE NOTIFICATION TEST - WORKING VERSION
+# COMPLETE NOTIFICATION TEST - ALL 6 TYPES
 $BASE_URL = "http://localhost:8000"
 
-Write-Host "`n=== NOTIFICATION TESTING ===" -ForegroundColor Cyan
+Write-Host "`n=== COMPLETE NOTIFICATION TEST ===" -ForegroundColor Cyan
 
-# Create users with proper names
+# Create users
 $users = @(
-    @{ email = "ahmed_test_$(Get-Random)@test.com"; password = "Test123!"; first_name = "Ahmed"; last_name = "TestUser" },
-    @{ email = "fatima_test_$(Get-Random)@test.com"; password = "Test123!"; first_name = "Fatima"; last_name = "TestUser" },
-    @{ email = "omar_test_$(Get-Random)@test.com"; password = "Test123!"; first_name = "Omar"; last_name = "TestUser" }
+    @{ email = "creator_$(Get-Random)@test.com"; password = "Test123!"; first_name = "Creator"; last_name = "User" },
+    @{ email = "joiner_$(Get-Random)@test.com"; password = "Test123!"; first_name = "Joiner"; last_name = "User" },
+    @{ email = "requester_$(Get-Random)@test.com"; password = "Test123!"; first_name = "Requester"; last_name = "User" }
 )
 
-Write-Host "`n--- Creating Users ---" -ForegroundColor Yellow
+Write-Host "`nCreating users..." -ForegroundColor Yellow
 foreach ($user in $users) {
     $body = @{
         email = $user.email
@@ -23,153 +23,175 @@ foreach ($user in $users) {
     Write-Host "Created: $($user.first_name)" -ForegroundColor Green
 }
 
-Write-Host "`n!!! RUN THIS SQL NOW !!!" -ForegroundColor Red
-Write-Host "UPDATE users SET is_email_verified = true WHERE email LIKE '%@test.com';" -ForegroundColor Cyan
-Read-Host "`nPress Enter after running SQL"
+Write-Host "`nRUN THIS SQL:" -ForegroundColor Red
+Write-Host "UPDATE users SET is_email_verified = true WHERE email LIKE '%@test.com';" -ForegroundColor White
+Read-Host "`nPress Enter after SQL"
 
-# Login all users
-Write-Host "`n--- Logging In ---" -ForegroundColor Yellow
+# Login
+Write-Host "`nLogging in..." -ForegroundColor Yellow
 $tokens = @()
 foreach ($user in $users) {
     $loginBody = @{ email = $user.email; password = $user.password } | ConvertTo-Json
     $response = Invoke-RestMethod -Uri "$BASE_URL/auth/login" -Method Post -Body $loginBody -ContentType "application/json"
     $tokens += $response.access_token
-    Write-Host "Logged in: $($user.first_name)" -ForegroundColor Green
 }
 
-$token1 = $tokens[0]
-$token2 = $tokens[1]
-$token3 = $tokens[2]
+$creatorToken = $tokens[0]
+$joinerToken = $tokens[1]
+$requesterToken = $tokens[2]
 
-# TEST 1: Create Community
-Write-Host "`n━━━ TEST 1: Community Created ━━━" -ForegroundColor Yellow
+Write-Host "All logged in`n" -ForegroundColor Green
+
+# TEST 1: Community Created
+Write-Host "--- TEST 1: Community Created ---" -ForegroundColor Yellow
 
 $commBody = @{
-    name = "Test Notifications $(Get-Random)"
-    description = "Testing"
+    name = "Test $(Get-Random)"
+    description = "Test"
     is_private = $false
     max_members = 50
 } | ConvertTo-Json
 
 $community = Invoke-RestMethod -Uri "$BASE_URL/community/communities" -Method Post -Headers @{
-    "Authorization" = "Bearer $token1"
+    "Authorization" = "Bearer $creatorToken"
     "Content-Type" = "application/json"
 } -Body $commBody
 
-Write-Host "Community: $($community.name)" -ForegroundColor Cyan
 Start-Sleep -Seconds 1
 
-$notifs = Invoke-RestMethod -Uri "$BASE_URL/notifications/notifications" -Headers @{ "Authorization" = "Bearer $token2" }
-if ($notifs.Count -gt 0 -and $notifs[0].type -eq "community_created") {
-    Write-Host "✅ PASS - Fatima got notification" -ForegroundColor Green
+$joinerNotifs = Invoke-RestMethod -Uri "$BASE_URL/notifications/notifications" -Headers @{ "Authorization" = "Bearer $joinerToken" }
+if ($joinerNotifs[0].type -eq "community_created") {
+    Write-Host "PASS - Community created notification" -ForegroundColor Green
 } else {
-    Write-Host "❌ FAIL" -ForegroundColor Red
+    Write-Host "FAIL" -ForegroundColor Red
 }
 
-# TEST 2: Invite & Accept
-Write-Host "`n━━━ TEST 2: Invite Accepted ━━━" -ForegroundColor Yellow
+# TEST 2: Invite Accepted
+Write-Host "`n--- TEST 2: Invite Accepted ---" -ForegroundColor Yellow
 
-$inviteBody = @{
-    first_name = "Fatima"
-    last_name = "TestUser"
-} | ConvertTo-Json
+$inviteBody = @{ first_name = "Joiner"; last_name = "User" } | ConvertTo-Json
+Invoke-RestMethod -Uri "$BASE_URL/community/communities/$($community.id)/invite" -Method Post -Headers @{
+    "Authorization" = "Bearer $creatorToken"
+    "Content-Type" = "application/json"
+} -Body $inviteBody | Out-Null
 
-try {
-    Invoke-RestMethod -Uri "$BASE_URL/community/communities/$($community.id)/invite" -Method Post -Headers @{
-        "Authorization" = "Bearer $token1"
-        "Content-Type" = "application/json"
-    } -Body $inviteBody | Out-Null
-    
-    Write-Host "Invitation sent" -ForegroundColor Cyan
-    
-    # Accept
-    $pending = Invoke-RestMethod -Uri "$BASE_URL/community/invitations/pending" -Headers @{ "Authorization" = "Bearer $token2" }
-    
-    if ($pending.Count -gt 0) {
-        Invoke-RestMethod -Uri "$BASE_URL/community/invitations/$($pending[0].id)/accept" -Method Post -Headers @{
-            "Authorization" = "Bearer $token2"
-        } | Out-Null
-        
-        Start-Sleep -Seconds 1
-        
-        $notifs1 = Invoke-RestMethod -Uri "$BASE_URL/notifications/notifications" -Headers @{ "Authorization" = "Bearer $token1" }
-        $accepted = $notifs1 | Where-Object { $_.type -eq "invite_accepted" }
-        
-        if ($accepted) {
-            Write-Host "✅ PASS - Ahmed got accept notification" -ForegroundColor Green
-            Write-Host "   $($accepted.message)" -ForegroundColor White
-        } else {
-            Write-Host "❌ FAIL - No notification" -ForegroundColor Red
-        }
-    } else {
-        Write-Host "❌ FAIL - No pending invites" -ForegroundColor Red
-    }
-} catch {
-    Write-Host "❌ FAIL - $($_.Exception.Message)" -ForegroundColor Red
+$pending = Invoke-RestMethod -Uri "$BASE_URL/community/invitations/pending" -Headers @{ "Authorization" = "Bearer $joinerToken" }
+Invoke-RestMethod -Uri "$BASE_URL/community/invitations/$($pending[0].id)/accept" -Method Post -Headers @{ "Authorization" = "Bearer $joinerToken" } | Out-Null
+
+Start-Sleep -Seconds 1
+
+$creatorNotifs = Invoke-RestMethod -Uri "$BASE_URL/notifications/notifications" -Headers @{ "Authorization" = "Bearer $creatorToken" }
+$accepted = $creatorNotifs | Where-Object { $_.type -eq "invite_accepted" }
+if ($accepted) {
+    Write-Host "PASS - Invite accepted notification" -ForegroundColor Green
+} else {
+    Write-Host "FAIL" -ForegroundColor Red
 }
 
-# TEST 3: Invite & Decline  
-Write-Host "`n━━━ TEST 3: Invite Declined ━━━" -ForegroundColor Yellow
+# TEST 3: Invite Declined
+Write-Host "`n--- TEST 3: Invite Declined ---" -ForegroundColor Yellow
 
-$inviteBody3 = @{
-    first_name = "Omar"
-    last_name = "TestUser"
-} | ConvertTo-Json
+$inviteBody2 = @{ first_name = "Requester"; last_name = "User" } | ConvertTo-Json
+Invoke-RestMethod -Uri "$BASE_URL/community/communities/$($community.id)/invite" -Method Post -Headers @{
+    "Authorization" = "Bearer $creatorToken"
+    "Content-Type" = "application/json"
+} -Body $inviteBody2 | Out-Null
 
-try {
-    Invoke-RestMethod -Uri "$BASE_URL/community/communities/$($community.id)/invite" -Method Post -Headers @{
-        "Authorization" = "Bearer $token1"
-        "Content-Type" = "application/json"
-    } -Body $inviteBody3 | Out-Null
-    
-    # Decline
-    $pending3 = Invoke-RestMethod -Uri "$BASE_URL/community/invitations/pending" -Headers @{ "Authorization" = "Bearer $token3" }
-    
-    if ($pending3.Count -gt 0) {
-        Invoke-RestMethod -Uri "$BASE_URL/community/invitations/$($pending3[0].id)/decline" -Method Post -Headers @{
-            "Authorization" = "Bearer $token3"
-        } | Out-Null
-        
-        Start-Sleep -Seconds 1
-        
-        $notifs1 = Invoke-RestMethod -Uri "$BASE_URL/notifications/notifications" -Headers @{ "Authorization" = "Bearer $token1" }
-        $declined = $notifs1 | Where-Object { $_.type -eq "invite_declined" }
-        
-        if ($declined) {
-            Write-Host "✅ PASS - Ahmed got decline notification" -ForegroundColor Green
-            Write-Host "   $($declined.message)" -ForegroundColor White
-        } else {
-            Write-Host "❌ FAIL - No notification" -ForegroundColor Red
-        }
-    }
-} catch {
-    Write-Host "❌ FAIL - $($_.Exception.Message)" -ForegroundColor Red
+$pending2 = Invoke-RestMethod -Uri "$BASE_URL/community/invitations/pending" -Headers @{ "Authorization" = "Bearer $requesterToken" }
+Invoke-RestMethod -Uri "$BASE_URL/community/invitations/$($pending2[0].id)/decline" -Method Post -Headers @{ "Authorization" = "Bearer $requesterToken" } | Out-Null
+
+Start-Sleep -Seconds 1
+
+$creatorNotifs = Invoke-RestMethod -Uri "$BASE_URL/notifications/notifications" -Headers @{ "Authorization" = "Bearer $creatorToken" }
+$declined = $creatorNotifs | Where-Object { $_.type -eq "invite_declined" }
+if ($declined) {
+    Write-Host "PASS - Invite declined notification" -ForegroundColor Green
+} else {
+    Write-Host "FAIL" -ForegroundColor Red
 }
 
 # TEST 4: Join Request
-Write-Host "`n━━━ TEST 4: Join Request ━━━" -ForegroundColor Yellow
+Write-Host "`n--- TEST 4: Join Request ---" -ForegroundColor Yellow
 
-Invoke-RestMethod -Uri "$BASE_URL/community/communities/$($community.id)/join-request" -Method Post -Headers @{
-    "Authorization" = "Bearer $token3"
-} | Out-Null
+Invoke-RestMethod -Uri "$BASE_URL/community/communities/$($community.id)/join-request" -Method Post -Headers @{ "Authorization" = "Bearer $requesterToken" } | Out-Null
 
 Start-Sleep -Seconds 1
 
-$notifs1 = Invoke-RestMethod -Uri "$BASE_URL/notifications/notifications" -Headers @{ "Authorization" = "Bearer $token1" }
-$joinReq = $notifs1 | Where-Object { $_.type -eq "join_request" }
-
+$creatorNotifs = Invoke-RestMethod -Uri "$BASE_URL/notifications/notifications" -Headers @{ "Authorization" = "Bearer $creatorToken" }
+$joinReq = $creatorNotifs | Where-Object { $_.type -eq "join_request" }
 if ($joinReq) {
-    Write-Host "✅ PASS - Ahmed got join request" -ForegroundColor Green
-    Write-Host "   $($joinReq.message)" -ForegroundColor White
+    Write-Host "PASS - Join request notification" -ForegroundColor Green
 } else {
-    Write-Host "❌ FAIL" -ForegroundColor Red
+    Write-Host "FAIL" -ForegroundColor Red
 }
 
-# Summary
-Write-Host "`n=== RESULTS ===" -ForegroundColor Cyan
-$count = Invoke-RestMethod -Uri "$BASE_URL/notifications/notifications/unread-count" -Headers @{ "Authorization" = "Bearer $token1" }
-Write-Host "Ahmed's unread: $($count.unread_count)" -ForegroundColor White
+# TEST 5: Join Request Approved
+Write-Host "`n--- TEST 5: Join Request Approved ---" -ForegroundColor Yellow
 
+$joinRequests = Invoke-RestMethod -Uri "$BASE_URL/community/communities/$($community.id)/join-requests" -Headers @{ "Authorization" = "Bearer $creatorToken" }
+
+if ($joinRequests.Count -gt 0) {
+    Invoke-RestMethod -Uri "$BASE_URL/community/communities/$($community.id)/join-requests/$($joinRequests[0].id)/approve" -Method Post -Headers @{ "Authorization" = "Bearer $creatorToken" } | Out-Null
+    
+    Start-Sleep -Seconds 1
+    
+    $requesterNotifs = Invoke-RestMethod -Uri "$BASE_URL/notifications/notifications" -Headers @{ "Authorization" = "Bearer $requesterToken" }
+    $approved = $requesterNotifs | Where-Object { $_.type -eq "community_joined" }
+    if ($approved) {
+        Write-Host "PASS - Join approved notification" -ForegroundColor Green
+    } else {
+        Write-Host "FAIL" -ForegroundColor Red
+    }
+}
+
+# TEST 6: Join Request Rejected
+Write-Host "`n--- TEST 6: Join Request Rejected ---" -ForegroundColor Yellow
+
+$rejectUser = @{
+    email = "reject_$(Get-Random)@test.com"
+    password = "Test123!"
+    first_name = "Reject"
+    last_name = "User"
+}
+
+$regBody = @{
+    email = $rejectUser.email
+    password = $rejectUser.password
+    first_name = $rejectUser.first_name
+    last_name = $rejectUser.last_name
+} | ConvertTo-Json
+
+Invoke-RestMethod -Uri "$BASE_URL/auth/register" -Method Post -Body $regBody -ContentType "application/json" | Out-Null
+
+Write-Host "`nRUN THIS SQL AGAIN:" -ForegroundColor Red
+Write-Host "UPDATE users SET is_email_verified = true WHERE email LIKE '%reject_%@test.com';" -ForegroundColor White
+Read-Host "Press Enter after SQL"
+
+$rejectLogin = @{ email = $rejectUser.email; password = $rejectUser.password } | ConvertTo-Json
+$rejectResponse = Invoke-RestMethod -Uri "$BASE_URL/auth/login" -Method Post -Body $rejectLogin -ContentType "application/json"
+$rejectToken = $rejectResponse.access_token
+
+Invoke-RestMethod -Uri "$BASE_URL/community/communities/$($community.id)/join-request" -Method Post -Headers @{ "Authorization" = "Bearer $rejectToken" } | Out-Null
+
+Start-Sleep -Seconds 1
+
+$joinRequests2 = Invoke-RestMethod -Uri "$BASE_URL/community/communities/$($community.id)/join-requests" -Headers @{ "Authorization" = "Bearer $creatorToken" }
+
+if ($joinRequests2.Count -gt 0) {
+    Invoke-RestMethod -Uri "$BASE_URL/community/communities/$($community.id)/join-requests/$($joinRequests2[0].id)/reject" -Method Post -Headers @{ "Authorization" = "Bearer $creatorToken" } | Out-Null
+    
+    Start-Sleep -Seconds 1
+    
+    $rejectNotifs = Invoke-RestMethod -Uri "$BASE_URL/notifications/notifications" -Headers @{ "Authorization" = "Bearer $rejectToken" }
+    $rejected = $rejectNotifs | Where-Object { $_.type -eq "removed_from_community" }
+    if ($rejected) {
+        Write-Host "PASS - Join rejected notification" -ForegroundColor Green
+    } else {
+        Write-Host "FAIL" -ForegroundColor Red
+    }
+}
+
+Write-Host "`n=== ALL 6 TESTS COMPLETE ===" -ForegroundColor Cyan
 Write-Host "`nCleanup:" -ForegroundColor Yellow
 Write-Host "DELETE FROM users WHERE email LIKE '%@test.com';" -ForegroundColor White
 Write-Host ""
