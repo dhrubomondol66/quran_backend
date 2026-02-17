@@ -9,12 +9,10 @@ logger = logging.getLogger(__name__)
 
 
 def check_expiring_subscriptions():
-    """Check for subscriptions expiring in 24 hours"""
     
     db = SessionLocal()
     
     try:
-        # Get users with subscriptions expiring in 24 hours
         tomorrow = datetime.utcnow() + timedelta(hours=24)
         day_after_tomorrow = datetime.utcnow() + timedelta(hours=48)
         
@@ -43,5 +41,5 @@ def check_expiring_subscriptions():
 
 
 if __name__ == "__main__":
-    # Run manually for testing
+    
     check_expiring_subscriptions()
