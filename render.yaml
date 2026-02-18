@@ -43,6 +43,8 @@ services:
         value: https://quran-api.onrender.com/auth
       - key: OPENAI_API_KEY
         value: ${OPENAI_API_KEY}  # Use the environment variable
+      - key: ADMIN_SECRET_KEY
+        value: my-super-secret-key-12345
 
 databases:
   - name: quran-db

@@ -17,10 +17,54 @@ from app.routers.notification import router as notification_router
 from apscheduler.schedulers.background import BackgroundScheduler
 from app.tasks.subscription_checker import check_expiring_subscriptions
 import logging
+from app.models import Surah, Ayah
+from fastapi import HTTPException, Depends
+from sqlalchemy.orm import Session
+from app.database import get_db
+import os
 
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Quran Recitation API")
+
+@app.post("/admin/populate-surahs")
+def populate_surahs(admin_key: str, db: Session = Depends(get_db)):
+    """Populate database with Quran data - ONE TIME USE"""
+    
+    # Security check
+    if admin_key != os.getenv("ADMIN_SECRET_KEY", "default-secret-key"):
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    
+    # Check if already populated
+    if db.query(Surah).count() > 0:
+        return {"message": "Surahs already exist", "count": db.query(Surah).count()}
+    
+    import requests
+    URL = "https://api.alquran.cloud/v1/quran/quran-uthmani"
+    
+    response = requests.get(URL)
+    data = response.json()["data"]["surahs"]
+    
+    for surah in data:
+        db_surah = Surah(
+            number=surah["number"],
+            name_ar=surah["name"],
+            name_en=surah["englishName"],
+            ayah_count=len(surah["ayahs"]),
+        )
+        db.add(db_surah)
+        db.flush()
+        
+        for ayah in surah["ayahs"]:
+            db_ayah = Ayah(
+                surah_id=db_surah.id,
+                number=ayah["numberInSurah"],
+                text=ayah["text"],
+            )
+            db.add(db_ayah)
+    
+    db.commit()
+    return {"message": f"Successfully populated {len(data)} surahs"}
 
 # CORS
 app.add_middleware(
