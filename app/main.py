@@ -121,7 +121,7 @@ def populate_test_data(admin_key: str, db: Session = Depends(get_db)):
                 provider="local",
                 is_email_verified=True,
                 subscription_status=SubscriptionStatus.FREE,
-                profile_image_url=f"https://api.dicebear.com/7.x/initials/svg?seed={first_name}{last_name}"
+                #profile_image_url=f"https://api.dicebear.com/7.x/initials/svg?seed={first_name}{last_name}"
             )
             db.add(user)
             db.flush()
