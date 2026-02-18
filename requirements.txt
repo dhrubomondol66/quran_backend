@@ -30,3 +30,5 @@ httpx>=0.26.0
 
 #Scheduler for checking subscription time left
 apscheduler 
+
+jinja2
