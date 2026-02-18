@@ -57,6 +57,7 @@ def send_email_sync(to_email: str, subject: str, html_content: str):
 
 async def send_email(to_email: str, subject: str, html_content: str):
     """Async wrapper for send_email_sync"""
+    # Run the synchronous function
     return send_email_sync(to_email, subject, html_content)
 
 def get_verification_email_template(verification_link: str, user_email: str) -> str:
