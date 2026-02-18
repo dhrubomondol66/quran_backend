@@ -27,6 +27,8 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Quran Recitation API")
 
+#######=========== DELETE LATER ====================================================================#################################
+
 @app.post("/admin/populate-surahs")
 def populate_surahs(admin_key: str, db: Session = Depends(get_db)):
     """Populate database with Quran data - ONE TIME USE"""
@@ -65,6 +67,120 @@ def populate_surahs(admin_key: str, db: Session = Depends(get_db)):
     
     db.commit()
     return {"message": f"Successfully populated {len(data)} surahs"}
+
+# ADD THIS TO app/main.py (after the populate_surahs endpoint)
+
+@app.post("/admin/populate-test-data")
+def populate_test_data(admin_key: str, db: Session = Depends(get_db)):
+    """
+    Populate database with 100 test users + progress data
+    Creates realistic data for testing leaderboards, communities, etc.
+    """
+    
+    # Security check
+    if admin_key != os.getenv("ADMIN_SECRET_KEY", "default-secret-key"):
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    
+    # Check if already populated
+    existing_users = db.query(User).filter(User.email.like('%testuser%@quranapi.test')).count()
+    if existing_users >= 50:
+        return {"message": f"Test data already exists ({existing_users} users)"}
+    
+    from app.models import User, UserProgress, UserSettings, SubscriptionStatus
+    from app.auth import hash_password
+    import random
+    
+    created_count = 0
+    
+    # Arabic/Islamic names for realistic test data
+    first_names = [
+        "Ahmed", "Ali", "Hassan", "Omar", "Yusuf", "Ibrahim", "Khalid", "Tariq", "Bilal", "Hamza",
+        "Fatima", "Aisha", "Khadija", "Zainab", "Maryam", "Hafsa", "Sumaya", "Ruqayyah", "Amina", "Safiya",
+        "Abdullah", "Muhammad", "Mustafa", "Idris", "Ismail", "Zakaria", "Sulaiman", "Dawud", "Musa", "Isa",
+        "Asma", "Hana", "Layla", "Noor", "Rania", "Salma", "Yasmin", "Zahra", "Bushra", "Leena",
+        "Rashid", "Samir", "Karim", "Jamal", "Faisal", "Nasir", "Amin", "Rafiq", "Majid", "Waleed"
+    ]
+    
+    last_names = [
+        "Rahman", "Malik", "Hassan", "Ali", "Khan", "Ahmed", "Sheikh", "Noor", "Siddiqui", "Iqbal",
+        "Farooq", "Abbas", "Raza", "Hussain", "Shah", "Aziz", "Rashid", "Karim", "Hakim", "Sharif",
+        "Tahir", "Hamid", "Majeed", "Saleh", "Yusuf", "Ibrahim", "Mustafa", "Jamal", "Faisal", "Tariq"
+    ]
+    
+    for i in range(100):
+        first_name = random.choice(first_names)
+        last_name = random.choice(last_names)
+        email = f"testuser{i+1}@quranapi.test"
+        
+        # Check if user already exists
+        existing = db.query(User).filter(User.email == email).first()
+        if existing:
+            continue
+        
+        # Create user
+        user = User(
+            email=email,
+            hashed_password=hash_password("TestPass123!"),
+            first_name=first_name,
+            last_name=last_name,
+            provider="local",
+            is_email_verified=True,
+            subscription_status=SubscriptionStatus.FREE,
+            profile_image_url=f"https://api.dicebear.com/7.x/initials/svg?seed={first_name}{last_name}"
+        )
+        db.add(user)
+        db.flush()
+        
+        # Create varied progress data
+        # Mix of high performers, average, and beginners
+        if i < 20:  # Top 20 - high performers
+            accuracy = random.uniform(90, 99)
+            recitations = random.randint(40, 100)
+            streak = random.randint(15, 60)
+        elif i < 60:  # Middle 40 - average
+            accuracy = random.uniform(75, 90)
+            recitations = random.randint(10, 40)
+            streak = random.randint(5, 20)
+        else:  # Bottom 40 - beginners
+            accuracy = random.uniform(60, 75)
+            recitations = random.randint(5, 15)
+            streak = random.randint(1, 10)
+        
+        progress = UserProgress(
+            user_id=user.id,
+            total_recitation_attempts=recitations,
+            average_accuracy=round(accuracy, 2),
+            total_time_spent_seconds=recitations * random.randint(90, 300),
+            current_streak=streak,
+            longest_streak=streak + random.randint(0, 10)
+        )
+        db.add(progress)
+        
+        # Create settings
+        settings = UserSettings(
+            user_id=user.id,
+            show_on_leaderboard=True,
+            notifications_enabled=True
+        )
+        db.add(settings)
+        
+        created_count += 1
+    
+    db.commit()
+    
+    return {
+        "message": f"Successfully created {created_count} test users with progress data",
+        "details": {
+            "high_performers": "20 users (90-99% accuracy, 40-100 recitations)",
+            "average_users": "40 users (75-90% accuracy, 10-40 recitations)",
+            "beginners": "40 users (60-75% accuracy, 5-15 recitations)"
+        },
+        "test_credentials": {
+            "email": "testuser1@quranapi.test to testuser100@quranapi.test",
+            "password": "TestPass123!"
+        }
+    }
+#######=========== DELETE LATER (ABOVE) ====================================================================#################################
 
 # CORS
 app.add_middleware(
