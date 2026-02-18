@@ -70,144 +70,41 @@ def populate_surahs(admin_key: str, db: Session = Depends(get_db)):
 
 # ADD THIS TO app/main.py (after the populate_surahs endpoint)
 
-@app.post("/admin/populate-test-data")
-def populate_test_data(admin_key: str, db: Session = Depends(get_db)):
-    """Populate database with 100 test users + progress data"""
-    
-    # Move imports OUTSIDE try block
-    from app.models import User, UserProgress, UserSettings, SubscriptionStatus
-    from app.auth import hash_password
-    import random
-    
-    # Security check
-    if admin_key != os.getenv("ADMIN_SECRET_KEY", "default-secret-key"):
-        raise HTTPException(status_code=403, detail="Unauthorized")
-    
-    try:
-        # Check if already populated
-        existing_users = db.query(User).filter(User.email.like('%testuser%@quranapi.test')).count()
-        if existing_users >= 50:
-            return {"message": f"Test data already exists ({existing_users} users)"}
-        
-        created_count = 0
-        
-        first_names = [
-            "Ahmed", "Ali", "Hassan", "Omar", "Yusuf", "Ibrahim", "Khalid", "Tariq", "Bilal", "Hamza",
-            "Fatima", "Aisha", "Khadija", "Zainab", "Maryam", "Hafsa", "Sumaya", "Ruqayyah", "Amina", "Safiya",
-            "Abdullah", "Muhammad", "Mustafa", "Idris", "Ismail", "Zakaria", "Sulaiman", "Dawud", "Musa", "Isa",
-            "Asma", "Hana", "Layla", "Noor", "Rania", "Salma", "Yasmin", "Zahra", "Bushra", "Leena",
-            "Rashid", "Samir", "Karim", "Jamal", "Faisal", "Nasir", "Amin", "Rafiq", "Majid", "Waleed"
-        ]
-        
-        last_names = [
-            "Rahman", "Malik", "Hassan", "Ali", "Khan", "Ahmed", "Sheikh", "Noor", "Siddiqui", "Iqbal",
-            "Farooq", "Abbas", "Raza", "Hussain", "Shah", "Aziz", "Rashid", "Karim", "Hakim", "Sharif"
-        ]
-        
-        for i in range(100):
-            first_name = random.choice(first_names)
-            last_name = random.choice(last_names)
-            email = f"testuser{i+1}@quranapi.test"
-            
-            existing = db.query(User).filter(User.email == email).first()
-            if existing:
-                continue
-            
-            user = User(
-                email=email,
-                hashed_password=hash_password("TestPass123!"),
-                first_name=first_name,
-                last_name=last_name,
-                provider="local",
-                is_email_verified=True,
-                subscription_status=SubscriptionStatus.FREE,
-                #profile_image_url=f"https://api.dicebear.com/7.x/initials/svg?seed={first_name}{last_name}"
-            )
-            db.add(user)
-            db.flush()
-            
-            if i < 20:
-                accuracy = random.uniform(90, 99)
-                recitations = random.randint(40, 100)
-                streak = random.randint(15, 60)
-            elif i < 60:
-                accuracy = random.uniform(75, 90)
-                recitations = random.randint(10, 40)
-                streak = random.randint(5, 20)
-            else:
-                accuracy = random.uniform(60, 75)
-                recitations = random.randint(5, 15)
-                streak = random.randint(1, 10)
-            
-            progress = UserProgress(
-                user_id=user.id,
-                total_recitation_attempts=recitations,
-                average_accuracy=round(accuracy, 2),
-                total_time_spent_seconds=recitations * random.randint(90, 300),
-                current_streak=streak,
-                longest_streak=streak + random.randint(0, 10)
-            )
-            db.add(progress)
-            
-            settings = UserSettings(
-                user_id=user.id,
-                show_on_leaderboard=True,
-                notifications_enabled=True
-            )
-            db.add(settings)
-            
-            created_count += 1
-        
-        db.commit()
-        
-        return {
-            "message": f"Successfully created {created_count} test users",
-            "test_login": "testuser1@quranapi.test / TestPass123!"
-        }
-        
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
-    
-# ADD THIS TO app/main.py (after populate_test_data endpoint)
+# ADD THIS TO app/main.py
 
-@app.delete("/admin/cleanup-test-data")
-def cleanup_test_data(admin_key: str, db: Session = Depends(get_db)):
-    """Delete all test data from database"""
+@app.delete("/admin/nuclear-cleanup")
+def nuclear_cleanup(admin_key: str, confirm: str, db: Session = Depends(get_db)):
+    """
+    Delete ALL users and related data (keeps surahs/ayahs)
+    Requires confirm=DELETE_EVERYTHING for safety
+    """
     
     if admin_key != os.getenv("ADMIN_SECRET_KEY", "default-secret-key"):
         raise HTTPException(status_code=403, detail="Unauthorized")
     
-    from app.models import User, UserProgress, UserSettings, CommunityMember, Notification, DeviceToken
+    if confirm != "DELETE_EVERYTHING":
+        raise HTTPException(status_code=400, detail="Must pass confirm=DELETE_EVERYTHING")
+    
+    from app.models import User, UserProgress, UserSettings, CommunityMember, Notification, DeviceToken, Community, CommunityInvitation, Payment, UserActivity
     
     try:
-        # Patterns for test users
-        test_patterns = ['%@quranapi.com', '%@leaderboard.com', '%@test.com', '%test_%@test.com']
-        
-        total_deleted = 0
-        
-        for pattern in test_patterns:
-            # Get test user IDs first
-            test_user_ids = [u.id for u in db.query(User.id).filter(User.email.like(pattern)).all()]
-            
-            if not test_user_ids:
-                continue
-            
-            # Manually delete related records first
-            db.query(UserProgress).filter(UserProgress.user_id.in_(test_user_ids)).delete(synchronize_session=False)
-            db.query(UserSettings).filter(UserSettings.user_id.in_(test_user_ids)).delete(synchronize_session=False)
-            db.query(CommunityMember).filter(CommunityMember.user_id.in_(test_user_ids)).delete(synchronize_session=False)
-            db.query(Notification).filter(Notification.user_id.in_(test_user_ids)).delete(synchronize_session=False)
-            db.query(DeviceToken).filter(DeviceToken.user_id.in_(test_user_ids)).delete(synchronize_session=False)
-            
-            # Now delete users
-            deleted = db.query(User).filter(User.email.like(pattern)).delete(synchronize_session=False)
-            total_deleted += deleted
+        # Delete everything user-related (bottom-up to avoid foreign key issues)
+        db.query(DeviceToken).delete()
+        db.query(Notification).delete()
+        db.query(UserActivity).delete()
+        db.query(Payment).delete()
+        db.query(CommunityInvitation).delete()
+        db.query(CommunityMember).delete()
+        db.query(Community).delete()
+        db.query(UserSettings).delete()
+        db.query(UserProgress).delete()
+        db.query(User).delete()
         
         db.commit()
         
         return {
-            "message": f"Successfully deleted {total_deleted} test users and all related data"
+            "message": "Successfully deleted ALL users and related data",
+            "kept": "Surahs and Ayahs preserved"
         }
         
     except Exception as e:
