@@ -168,6 +168,53 @@ def populate_test_data(admin_key: str, db: Session = Depends(get_db)):
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+    
+# ADD THIS TO app/main.py (after populate_test_data endpoint)
+
+@app.delete("/admin/cleanup-test-data")
+def cleanup_test_data(admin_key: str, db: Session = Depends(get_db)):
+    """
+    Delete all test data from database
+    Removes users with @quranapi.test or @leaderboard.com or @test.com emails
+    """
+    
+    # Security check
+    if admin_key != os.getenv("ADMIN_SECRET_KEY", "default-secret-key"):
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    
+    from app.models import User
+    
+    # Find all test users
+    test_patterns = ['%@quranapi.test', '%@leaderboard.com', '%@test.com', '%test_%@test.com']
+    
+    deleted_counts = {}
+    total_deleted = 0
+    
+    for pattern in test_patterns:
+        users = db.query(User).filter(User.email.like(pattern)).all()
+        count = len(users)
+        
+        if count > 0:
+            # CASCADE delete will automatically delete:
+            # - user_progress
+            # - user_settings
+            # - community_members
+            # - notifications
+            # - payments
+            # - etc.
+            for user in users:
+                db.delete(user)
+            
+            deleted_counts[pattern] = count
+            total_deleted += count
+    
+    db.commit()
+    
+    return {
+        "message": f"Successfully deleted {total_deleted} test users",
+        "breakdown": deleted_counts,
+        "note": "Associated data (progress, settings, etc.) was also deleted via CASCADE"
+    }
 
 #######=========== DELETE LATER (ABOVE) ====================================================================#################################
 
