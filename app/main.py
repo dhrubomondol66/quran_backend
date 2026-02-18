@@ -173,48 +173,46 @@ def populate_test_data(admin_key: str, db: Session = Depends(get_db)):
 
 @app.delete("/admin/cleanup-test-data")
 def cleanup_test_data(admin_key: str, db: Session = Depends(get_db)):
-    """
-    Delete all test data from database
-    Removes users with @quranapi.test or @leaderboard.com or @test.com emails
-    """
+    """Delete all test data from database"""
     
-    # Security check
     if admin_key != os.getenv("ADMIN_SECRET_KEY", "default-secret-key"):
         raise HTTPException(status_code=403, detail="Unauthorized")
     
-    from app.models import User
+    from app.models import User, UserProgress, UserSettings, CommunityMember, Notification, DeviceToken
     
-    # Find all test users
-    test_patterns = ['%@quranapi.test', '%@leaderboard.com', '%@test.com', '%test_%@test.com']
-    
-    deleted_counts = {}
-    total_deleted = 0
-    
-    for pattern in test_patterns:
-        users = db.query(User).filter(User.email.like(pattern)).all()
-        count = len(users)
+    try:
+        # Patterns for test users
+        test_patterns = ['%@quranapi.com', '%@leaderboard.com', '%@test.com', '%test_%@test.com']
         
-        if count > 0:
-            # CASCADE delete will automatically delete:
-            # - user_progress
-            # - user_settings
-            # - community_members
-            # - notifications
-            # - payments
-            # - etc.
-            for user in users:
-                db.delete(user)
+        total_deleted = 0
+        
+        for pattern in test_patterns:
+            # Get test user IDs first
+            test_user_ids = [u.id for u in db.query(User.id).filter(User.email.like(pattern)).all()]
             
-            deleted_counts[pattern] = count
-            total_deleted += count
-    
-    db.commit()
-    
-    return {
-        "message": f"Successfully deleted {total_deleted} test users",
-        "breakdown": deleted_counts,
-        "note": "Associated data (progress, settings, etc.) was also deleted via CASCADE"
-    }
+            if not test_user_ids:
+                continue
+            
+            # Manually delete related records first
+            db.query(UserProgress).filter(UserProgress.user_id.in_(test_user_ids)).delete(synchronize_session=False)
+            db.query(UserSettings).filter(UserSettings.user_id.in_(test_user_ids)).delete(synchronize_session=False)
+            db.query(CommunityMember).filter(CommunityMember.user_id.in_(test_user_ids)).delete(synchronize_session=False)
+            db.query(Notification).filter(Notification.user_id.in_(test_user_ids)).delete(synchronize_session=False)
+            db.query(DeviceToken).filter(DeviceToken.user_id.in_(test_user_ids)).delete(synchronize_session=False)
+            
+            # Now delete users
+            deleted = db.query(User).filter(User.email.like(pattern)).delete(synchronize_session=False)
+            total_deleted += deleted
+        
+        db.commit()
+        
+        return {
+            "message": f"Successfully deleted {total_deleted} test users and all related data"
+        }
+        
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 
 #######=========== DELETE LATER (ABOVE) ====================================================================#################################
 
