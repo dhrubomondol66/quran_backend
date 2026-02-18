@@ -199,11 +199,11 @@ def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
     # ✅ Check if email is verified
-    if not db_user.is_email_verified:
-        raise HTTPException(
-            status_code=403, 
-            detail="Email not verified. Please check your email for verification link."
-        )
+    #if not db_user.is_email_verified:
+    #    raise HTTPException(
+    #        status_code=403, 
+    #        detail="Email not verified. Please check your email for verification link."
+    #    )
     
     token = auth.create_access_token(
         data={"sub": str(db_user.id)}
@@ -231,11 +231,11 @@ def token(
     if not auth.verify_password(form_data.password, db_user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    if not db_user.is_email_verified:
-        raise HTTPException(
-            status_code=403,
-            detail="Email not verified. Please check your email for verification link.",
-        )
+    #if not db_user.is_email_verified:
+    #    raise HTTPException(
+    #        status_code=403,
+    #        detail="Email not verified. Please check your email for verification link.",
+    #    )
 
     access_token = auth.create_access_token({"sub": str(db_user.id)})
     return {"access_token": access_token, "token_type": "bearer"}
