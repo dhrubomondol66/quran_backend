@@ -111,6 +111,32 @@ def nuclear_cleanup(admin_key: str, confirm: str, db: Session = Depends(get_db))
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 
+# ADD THIS TO app/main.py
+
+@app.post("/admin/test-email")
+def test_email(admin_key: str, to_email: str, db: Session = Depends(get_db)):
+    """Test email sending"""
+    
+    if admin_key != os.getenv("ADMIN_SECRET_KEY", "default-secret-key"):
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    
+    from app.email_utils import send_email_sync
+    
+    html = "<h1>Test Email</h1><p>If you see this, email is working!</p>"
+    
+    try:
+        result = send_email_sync(to_email, "Test Email from Quran API", html)
+        return {
+            "success": result,
+            "sendgrid_configured": bool(os.getenv("SENDGRID_API_KEY")),
+            "gmail_configured": bool(os.getenv("SMTP_USER") and os.getenv("SMTP_PASSWORD"))
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
 #######=========== DELETE LATER (ABOVE) ====================================================================#################################
 
 # CORS
