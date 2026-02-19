@@ -3,7 +3,7 @@ from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app import schemas, crud, auth
-from app.email_utils import send_email, get_verification_email_template, get_welcome_email_template, get_password_reset_email_template, get_password_changed_email_template
+from app.email_utils import send_email_sync, get_verification_email_template, get_welcome_email_template, get_password_reset_email_template, get_password_changed_email_template
 from google.oauth2 import id_token
 from fastapi.security import OAuth2PasswordRequestForm
 from google.auth.transport.requests import Request
@@ -33,7 +33,7 @@ async def register(
     html_content = get_verification_email_template(verification_link, user.email)
     
     background_tasks.add_task(
-        send_email,
+        send_email_sync,
         to_email=user.email,
         subject="Verify Your Email - Quran Recitation App",
         html_content=html_content
@@ -95,7 +95,7 @@ async def verify_email(
     welcome_html = get_welcome_email_template(user_name)
     
     background_tasks.add_task(
-        send_email,
+        send_email_sync,
         to_email=user.email,
         subject="Welcome to Quran Recitation App! 🌙",
         html_content=welcome_html
@@ -179,7 +179,7 @@ async def resend_verification(
     html_content = get_verification_email_template(verification_link, email)
     
     background_tasks.add_task(
-        send_email,
+        send_email_sync,
         to_email=email,
         subject="Verify Your Email - Quran Recitation App",
         html_content=html_content
@@ -259,7 +259,7 @@ async def forgot_password(
         html_content = get_password_reset_email_template(reset_link, request.email)
         
         background_tasks.add_task(
-            send_email,
+            send_email_sync,
             to_email=request.email,
             subject="Reset Your Password - Quran Recitation App",
             html_content=html_content
@@ -526,7 +526,7 @@ async def reset_password(
     confirmation_html = get_password_changed_email_template(user_name)
     
     background_tasks.add_task(
-        send_email,
+        send_email_sync,
         to_email=user.email,
         subject="Password Changed - Quran Recitation App",
         html_content=confirmation_html
