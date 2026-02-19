@@ -33,3 +33,4 @@ httpx>=0.26.0
 apscheduler 
 
 jinja2
+sendgrid

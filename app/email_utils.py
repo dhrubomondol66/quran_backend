@@ -8,6 +8,7 @@ import ssl
 
 load_dotenv()
 
+# Gmail SMTP settings
 SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
 SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
 SMTP_USER = os.getenv("SMTP_USER")
@@ -16,37 +17,58 @@ SMTP_FROM_EMAIL = os.getenv("SMTP_FROM_EMAIL", SMTP_USER)
 SMTP_FROM_NAME = os.getenv("SMTP_FROM_NAME", "Quran Recitation App")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
+# SendGrid settings
+SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
+
 def send_email_sync(to_email: str, subject: str, html_content: str):
-    """Send an email using standard smtplib (synchronous)"""
+    """Send email using SendGrid (if available) or Gmail fallback"""
     
+    # Try SendGrid first
+    if SENDGRID_API_KEY:
+        try:
+            from sendgrid import SendGridAPIClient
+            from sendgrid.helpers.mail import Mail
+            
+            message = Mail(
+                from_email=(SMTP_FROM_EMAIL, SMTP_FROM_NAME),
+                to_emails=to_email,
+                subject=subject,
+                html_content=html_content
+            )
+            
+            sg = SendGridAPIClient(SENDGRID_API_KEY)
+            response = sg.send(message)
+            print(f"✅ Email sent via SendGrid to {to_email} - Status: {response.status_code}")
+            return True
+            
+        except Exception as e:
+            print(f"⚠️ SendGrid failed: {e}, falling back to Gmail")
+    
+    # Fallback to Gmail
     message = MIMEMultipart("alternative")
     message["Subject"] = subject
     message["From"] = f"{SMTP_FROM_NAME} <{SMTP_FROM_EMAIL}>"
     message["To"] = to_email
     
-    # Attach HTML content
     html_part = MIMEText(html_content, "html")
     message.attach(html_part)
     
     try:
-        # Create a secure SSL context
         context = ssl.create_default_context()
         
-        # Connect to Gmail's SMTP server
         with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
-            server.ehlo()  # Identify ourselves
-            server.starttls(context=context)  # Secure the connection
-            server.ehlo()  # Re-identify ourselves over secure connection
+            server.ehlo()
+            server.starttls(context=context)
+            server.ehlo()
             server.login(SMTP_USER, SMTP_PASSWORD)
             server.send_message(message)
         
-        print(f"✅ Email sent successfully to {to_email}")
+        print(f"✅ Email sent via Gmail to {to_email}")
         return True
         
     except smtplib.SMTPAuthenticationError as e:
         print(f"❌ Authentication failed: {e}")
         print("Check your SMTP_USER and SMTP_PASSWORD in .env")
-        print("Make sure you're using an App Password, not your regular Gmail password")
         return False
     except smtplib.SMTPException as e:
         print(f"❌ SMTP error: {e}")
@@ -57,7 +79,6 @@ def send_email_sync(to_email: str, subject: str, html_content: str):
 
 async def send_email(to_email: str, subject: str, html_content: str):
     """Async wrapper for send_email_sync"""
-    # Run the synchronous function
     return send_email_sync(to_email, subject, html_content)
 
 def get_verification_email_template(verification_link: str, user_email: str) -> str:
