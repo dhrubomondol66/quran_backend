@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.deps import get_current_user
+from app.image_utils import upload_image
 from app.models import User, UserSettings
 from pydantic import BaseModel
 from typing import Optional 
@@ -141,3 +142,35 @@ def update_profile(
         "success": True,
         "message": "Profile updated successfully"
     }
+
+@router.post("/upload-profile-picture")
+async def upload_profile_picture(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Upload profile picture"""
+    
+    # Upload to Cloudinary
+    image_url = await upload_image(file, folder="quran_app/profiles")
+    
+    # Update user
+    current_user.profile_image_url = image_url
+    db.commit()
+    
+    return {
+        "message": "Profile picture uploaded successfully",
+        "image_url": image_url
+    }
+
+@router.delete("/delete-profile-picture")
+def delete_profile_picture(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Delete profile picture"""
+    
+    current_user.profile_image_url = None
+    db.commit()
+    
+    return {"message": "Profile picture deleted"}
