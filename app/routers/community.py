@@ -1314,6 +1314,35 @@ def get_communities_leaderboard(
         "scoring": "Sum of members scores (70% accuracy + 30% recitations)"
     }
 
+@router.post("/communities/{community_id}/upload-image")
+async def upload_community_image(
+    community_id: int,
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Upload community image (creator only)"""
+    
+    from app.image_utils import upload_image
+    
+    community = db.query(Community).filter(Community.id == community_id).first()
+    if not community:
+        raise HTTPException(status_code=404, detail="Community not found")
+    
+    if community.created_by != current_user.id:
+        raise HTTPException(status_code=403, detail="Only creator can update image")
+    
+    # Upload to Cloudinary
+    image_url = await upload_image(file, folder="quran_app/communities")
+    
+    # Update community
+    community.community_image_url = image_url
+    db.commit()
+    
+    return {
+        "message": "Community image uploaded successfully",
+        "image_url": image_url
+    }
 # ============================================================================
 # HELPER FUNCTIONS
 # ============================================================================

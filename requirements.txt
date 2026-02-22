@@ -34,3 +34,4 @@ apscheduler
 
 jinja2
 sendgrid
+cloudinary

@@ -42,7 +42,7 @@ class User(Base):
     provider_id = Column(String, nullable=True, unique=True, index=True)
     first_name = Column(String, nullable=True)
     last_name = Column(String, nullable=True)
-    
+    profile_image_url = Column(String(500), nullable=True)    
      # ✅ Email verification fields
     is_email_verified = Column(Boolean, default=False, nullable=False)
     email_verification_token = Column(String, nullable=True, unique=True, index=True)
@@ -244,6 +244,7 @@ class Community(Base):
     max_members = Column(Integer, default=100)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, onupdate=datetime.utcnow)
+    community_image_url = Column(String(500), nullable=True)
     
     creator = relationship("User", foreign_keys=[created_by], backref="owned_communities")
     members = relationship("CommunityMember", back_populates="community", cascade="all, delete-orphan")
