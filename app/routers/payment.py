@@ -173,7 +173,8 @@ async def stripe_webhook(
     return {"status": "success"}
 
 def handle_checkout_session_completed(session, db: Session):
-    """Handle successful checkout session"""
+    """Handle successful checkout session (subscription activation only)"""
+    
     user_id = int(session['metadata']['user_id'])
     plan_type = session['metadata']['plan_type']
     
@@ -182,40 +183,41 @@ def handle_checkout_session_completed(session, db: Session):
         logger.error(f"User {user_id} not found")
         return
     
-    # Update user subscription
-    user.subscription_status = SubscriptionStatus.ACTIVE
-    user.subscription_plan = plan_type
-    user.subscription_start_date = datetime.utcnow()
-    
-    # Set end date
-    if plan_type == "monthly":
-        user.subscription_end_date = datetime.utcnow() + timedelta(days=30)
-    else:  # yearly
-        user.subscription_end_date = datetime.utcnow() + timedelta(days=365)
-    
-    # Save subscription ID
-    if session.get('subscription'):
-        user.stripe_subscription_id = session['subscription']
-    
-    # Record payment - FIX: Get payment_intent_id correctly
-    payment_intent_id = (
-        session.get('payment_intent') or 
-        session.get('id') or 
-        f"checkout_{session.get('id', 'unknown')}"
-    )
-    
-    payment = Payment(
-        user_id=user_id,
-        stripe_payment_intent_id=payment_intent_id,
-        amount=session.get('amount_total', 0),
-        currency=session.get('currency', 'usd'),
-        status='succeeded',
-        plan_type=plan_type
-    )
-    db.add(payment)
-    db.commit()
-    
-    logger.info(f"User {user_id} subscribed to {plan_type} plan")
+    # Get Stripe subscription ID
+    stripe_subscription_id = session.get('subscription')
+    if not stripe_subscription_id:
+        logger.error("No subscription ID found in session")
+        return
+
+    try:
+        # Retrieve full subscription from Stripe
+        subscription = stripe.Subscription.retrieve(stripe_subscription_id)
+
+        # Get accurate billing period from Stripe
+        current_period_start = datetime.utcfromtimestamp(
+            subscription['current_period_start']
+        )
+        current_period_end = datetime.utcfromtimestamp(
+            subscription['current_period_end']
+        )
+
+        # Update user subscription
+        user.subscription_status = SubscriptionStatus.ACTIVE
+        user.subscription_plan = plan_type
+        user.subscription_start_date = current_period_start
+        user.subscription_end_date = current_period_end
+        user.stripe_subscription_id = stripe_subscription_id
+
+        db.commit()
+
+        logger.info(
+            f"User {user_id} subscribed to {plan_type} plan. "
+            f"Valid until {current_period_end}"
+        )
+
+    except stripe.error.StripeError as e:
+        logger.error(f"Stripe error retrieving subscription: {str(e)}")
+        db.rollback()
 
 def handle_invoice_payment_succeeded(invoice, db: Session):
     """Handle successful recurring payment"""
