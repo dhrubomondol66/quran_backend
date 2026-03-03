@@ -57,7 +57,7 @@ def get_admin_dashboard(
     
     # Premium vs Free users
     premium_users = db.query(User).filter(
-        User.subscription_status.in_([SubscriptionStatus.ACTIVE, SubscriptionStatus.PREMIUM])
+        User.subscription_status.in_([SubscriptionStatus.ACTIVE])
     ).count()
     free_users = total_users - premium_users
     
@@ -111,7 +111,7 @@ def get_admin_dashboard(
             and_(
                 User.created_at >= day_start,
                 User.created_at < day_end,
-                User.subscription_status.in_([SubscriptionStatus.ACTIVE, SubscriptionStatus.PREMIUM])
+                User.subscription_status.in_([SubscriptionStatus.ACTIVE])
             )
         ).count()
         
@@ -209,7 +209,7 @@ def get_all_users(
     if plan:
         if plan.lower() == "premium":
             query = query.filter(
-                User.subscription_status.in_([SubscriptionStatus.ACTIVE, SubscriptionStatus.PREMIUM])
+                User.subscription_status.in_([SubscriptionStatus.ACTIVE])
             )
         elif plan.lower() == "basic":
             query = query.filter(User.subscription_status == SubscriptionStatus.FREE)
@@ -225,7 +225,7 @@ def get_all_users(
     user_list = []
     for user in users:
         full_name = f"{user.first_name or ''} {user.last_name or ''}".strip() or user.email.split("@")[0]
-        plan_status = "Premium" if user.subscription_status in [SubscriptionStatus.ACTIVE, SubscriptionStatus.PREMIUM] else "Basic"
+        plan_status = "Premium" if user.subscription_status in [SubscriptionStatus.ACTIVE] else "Basic"
         
         user_list.append(UserListItem(
             id=user.id,
