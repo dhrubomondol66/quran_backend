@@ -462,3 +462,18 @@ def change_plan(
     except stripe.error.StripeError as e:
         logger.error(f"Failed to change plan: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
+
+@router.get("/success")
+def payment_success(session_id: str):
+    return {
+        "message": "Payment successful",
+        "session_id": session_id,
+        "note": "Subscription will be activated via webhook."
+    }
+
+
+@router.get("/cancel")
+def payment_cancel():
+    return {
+        "message": "Payment cancelled"
+    }
