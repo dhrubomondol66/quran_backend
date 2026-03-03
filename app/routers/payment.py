@@ -81,6 +81,7 @@ def create_checkout_session(
         plan_name = "Monthly Premium" if data.plan_type == "monthly" else "Yearly Premium"
         plan_description = f"${amount/100:.2f}/{interval} - Full access to Quran recitation premium features"
         
+        BASE_URL = "https://quran-api-arfx.onrender.com"
         # Create Checkout Session for recurring subscription
         session = stripe.checkout.Session.create(
             customer=current_user.stripe_customer_id,
@@ -101,8 +102,8 @@ def create_checkout_session(
                 'quantity': 1,
             }],
             mode='subscription',
-            success_url=data.success_url + '?session_id={CHECKOUT_SESSION_ID}',
-            cancel_url=data.cancel_url,
+            success_url=f"{BASE_URL}/payment/success?session_id={{CHECKOUT_SESSION_ID}}",            
+            cancel_url=f"{BASE_URL}/payment/cancel",            
             metadata={
                 'user_id': current_user.id,
                 'plan_type': data.plan_type
