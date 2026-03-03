@@ -21,6 +21,7 @@ from app.models import Surah, Ayah
 from fastapi import HTTPException, Depends
 from sqlalchemy.orm import Session
 from app.database import get_db
+from app.routers.admin_router import router as admin_router
 import os
 
 logger = logging.getLogger(__name__)
@@ -165,6 +166,7 @@ app.include_router(voice_router, prefix="/voice", tags=["Voice"])
 app.include_router(community_router, prefix="/community", tags=["Community"])
 app.include_router(analytics_router, prefix="/analytics", tags=["Analytics"])
 app.include_router(notification_router, prefix="/notifications", tags=["Notifications"])
+app.include_router(admin_router, prefix="/admin", tags=["Admin"])
 
 @app.on_event("startup")
 def start_scheduler():
