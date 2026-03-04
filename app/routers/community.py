@@ -1,24 +1,10 @@
-"""
-Community Router
-================
-Handles community creation, invitations, member management, and community leaderboards
-
-Features:
-- Create communities
-- Invite users by name
-- Accept/decline invitations
-- View community members
-- Remove members (creator only)
-- Community-specific leaderboard
-- Notifications for all community actions
-"""
-
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, and_, desc, func
 from typing import List, Optional
 from datetime import datetime
 from app.services.notification_service import NotificationService
+from app.routers.admin_router import ADMIN_EMAILS
 
 from app.database import get_db
 from app.deps import get_current_user
@@ -126,6 +112,9 @@ def create_community(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    if current_user.email in ADMIN_EMAILS:
+        raise HTTPException(status_code=403, detail="Admin accounts cannot create communities")
+    
     """
     Create a new community
     
@@ -200,7 +189,6 @@ def browse_communities(
     Optionally filter by name search
     """
     
-    # Get communities user is already a member of
     user_community_ids = [
         m.community_id for m in 
         db.query(CommunityMember).filter(
@@ -208,7 +196,6 @@ def browse_communities(
         ).all()
     ]
     
-    # Build query for communities
     query = db.query(Community).filter(
         or_(
             Community.is_private == False,  # Public communities
@@ -736,7 +723,8 @@ def get_community_leaderboard(
             User.id.in_(member_ids),
             UserProgress.total_recitation_attempts >= MIN_RECITATIONS,
             UserProgress.average_accuracy > 0,
-            UserSettings.show_on_leaderboard == True
+            UserSettings.show_on_leaderboard == True,
+            ~User.email.in_(ADMIN_EMAILS)  # ✅ ADD THIS
         )
     ).all()
 
@@ -854,6 +842,9 @@ def send_join_request(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    if current_user.email in ADMIN_EMAILS:
+        raise HTTPException(status_code=403, detail="Admin accounts cannot join communities")
+    
     """
     Send a join request to a community
     
@@ -1220,7 +1211,8 @@ def get_communities_leaderboard(
             User.id.in_(member_ids),
             UserProgress.total_recitation_attempts >= MIN_RECITATIONS,
             UserProgress.average_accuracy > 0,
-            UserSettings.show_on_leaderboard == True
+            UserSettings.show_on_leaderboard == True,
+            ~User.email.in_(ADMIN_EMAILS)
         ).all()
 
         if not eligible:

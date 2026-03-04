@@ -16,6 +16,9 @@ ADMIN_EMAILS = [
     "beupintech@gmail.com",  # Super Admin - Totok Michael
     "fardeenpranto1@outlook.com"   # Sub Admin - Devon Lane
 ]
+def exclude_admins_filter(query, model=User):
+    """Filter to exclude admin users from queries"""
+    return query.filter(~model.email.in_(ADMIN_EMAILS))
 
 def is_admin(user: User) -> bool:
     """Check if user is an admin"""
@@ -53,11 +56,13 @@ def get_admin_dashboard(
     """
     
     # Total users
-    total_users = db.query(User).count()
+    total_users = db.query(User).count().filter(~User.email.in_(ADMIN_EMAILS)).count()
     
     # Premium vs Free users
     premium_users = db.query(User).filter(
-        User.subscription_status.in_([SubscriptionStatus.ACTIVE])
+        User.subscription_status.in_([SubscriptionStatus.ACTIVE]),
+        ~User.email.in_(ADMIN_EMAILS)
+        
     ).count()
     free_users = total_users - premium_users
     

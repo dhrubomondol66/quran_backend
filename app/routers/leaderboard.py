@@ -4,6 +4,7 @@ from sqlalchemy import desc, and_, or_, func
 from app.database import get_db
 from app.deps import get_current_user
 from app.models import User, UserProgress, UserSettings
+from app.routers.admin_router import ADMIN_EMAILS
 
 router = APIRouter()
 
@@ -63,7 +64,8 @@ def get_leaderboard(
         and_(
             UserProgress.total_recitation_attempts >= MIN_RECITATIONS,
             UserProgress.average_accuracy > 0,
-            UserSettings.show_on_leaderboard == True
+            UserSettings.show_on_leaderboard == True,
+            ~User.email.in_(ADMIN_EMAILS)
         )
     ).all()
 
