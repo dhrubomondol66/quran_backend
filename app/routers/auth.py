@@ -7,11 +7,9 @@ from app.email_utils import send_email_sync, get_verification_email_template, ge
 from google.oauth2 import id_token
 from fastapi.security import OAuth2PasswordRequestForm
 from google.auth.transport.requests import Request
-import os
+from app.config import FRONTEND_URL
 
 router = APIRouter()
-
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
 @router.post("/register", response_model=schemas.UserOut)
 async def register(

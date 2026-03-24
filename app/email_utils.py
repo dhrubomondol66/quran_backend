@@ -2,23 +2,12 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from jinja2 import Template
-import os
-from dotenv import load_dotenv
 import ssl
-
-load_dotenv()
-
-# Gmail SMTP settings
-SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
-SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
-SMTP_USER = os.getenv("SMTP_USER")
-SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
-SMTP_FROM_EMAIL = os.getenv("SMTP_FROM_EMAIL", SMTP_USER)
-SMTP_FROM_NAME = os.getenv("SMTP_FROM_NAME", "Quran Recitation App")
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
-
-# SendGrid settings
-SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
+from app.config import (
+    SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD,
+    SMTP_FROM_EMAIL, SMTP_FROM_NAME, FRONTEND_URL,
+    SENDGRID_API_KEY
+)
 
 def send_email_sync(to_email: str, subject: str, html_content: str):
     """Send email using SendGrid (if available) or Gmail fallback"""

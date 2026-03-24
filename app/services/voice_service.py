@@ -5,28 +5,24 @@ Handles speech-to-text, evaluation, and session management for live recitation.
 Integrates OpenAI Whisper and custom evaluation logic.
 """
 
-import os
 import base64
 import io
 import wave
 import tempfile
 import uuid
+import os
 from typing import Optional, Dict, List
 from datetime import datetime
 from dataclasses import dataclass, field
 from pydantic import BaseModel
-
-# OpenAI for Whisper
 from openai import AsyncOpenAI
-
-# Import evaluation components from teammate's code
 from app.services.evaluation_service import (
     RecitationEvaluator,
     EvaluationResult,
     WordFeedback,
     WordStatus
 )
-
+from app.config import OPENAI_API_KEY
 
 # ============================================================================
 # DATA MODELS
@@ -85,9 +81,8 @@ class VoiceRecitationService:
         self.sessions: Dict[str, RecitationSession] = {}
         
         # Initialize OpenAI if API key is available
-        api_key = os.getenv("OPENAI_API_KEY")
-        if api_key:
-            self.openai_client = AsyncOpenAI(api_key=api_key)
+        if OPENAI_API_KEY:
+            self.openai_client = AsyncOpenAI(api_key=OPENAI_API_KEY)
     
     def is_available(self) -> bool:
         """Check if STT service is available"""

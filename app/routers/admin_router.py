@@ -7,15 +7,10 @@ from app.deps import get_current_user
 from app.models import User, Payment, SubscriptionStatus
 from typing import Optional, List
 from pydantic import BaseModel
+from app.config import ADMIN_INIT_SECRET, ADMIN_EMAILS
 import os
 
 router = APIRouter()
-
-# Hardcoded admin emails - NO OTHER WAY TO CREATE ADMINS
-ADMIN_EMAILS = [
-    "beupintech@gmail.com",  # Super Admin - Totok Michael
-    "fardeenpranto1@outlook.com"   # Sub Admin - Devon Lane
-]
 def exclude_admins_filter(query, model=User):
     """Filter to exclude admin users from queries"""
     return query.filter(~model.email.in_(ADMIN_EMAILS))
@@ -351,8 +346,6 @@ def initialize_admins(
     ONE-TIME SETUP: Create the two admin accounts
     Requires ADMIN_INIT_SECRET from environment variables
     """
-    
-    ADMIN_INIT_SECRET = os.getenv("ADMIN_INIT_SECRET", "your-super-secret-init-key")
     
     if secret_key != ADMIN_INIT_SECRET:
         raise HTTPException(status_code=403, detail="Invalid initialization key")

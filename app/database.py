@@ -1,15 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
-from dotenv import load_dotenv  # ✅ Add this import
-import os
-
-# ✅ Add this line to load .env file
-load_dotenv()
-
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql://postgres:postgres@localhost:5432/quran_app"
-)
+from app.config import DATABASE_URL
 
 engine = create_engine(DATABASE_URL)
 

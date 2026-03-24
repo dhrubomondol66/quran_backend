@@ -1,5 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
+import os
+
+# Load environment variables first
+load_dotenv()
+
 from app.database import Base, engine
 from app import models
 from app.routers import auth, surah
@@ -22,7 +28,7 @@ from fastapi import HTTPException, Depends
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.routers.admin_router import router as admin_router
-import os
+from app.config import ADMIN_SECRET_KEY, OPENAI_API_KEY, STRIPE_SECRET_KEY
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +41,7 @@ def populate_surahs(admin_key: str, db: Session = Depends(get_db)):
     """Populate database with Quran data - ONE TIME USE"""
     
     # Security check
-    if admin_key != os.getenv("ADMIN_SECRET_KEY", "default-secret-key"):
+    if admin_key != ADMIN_SECRET_KEY:
         raise HTTPException(status_code=403, detail="Unauthorized")
     
     # Check if already populated
@@ -80,7 +86,7 @@ def nuclear_cleanup(admin_key: str, confirm: str, db: Session = Depends(get_db))
     Requires confirm=DELETE_EVERYTHING for safety
     """
     
-    if admin_key != os.getenv("ADMIN_SECRET_KEY", "default-secret-key"):
+    if admin_key != ADMIN_SECRET_KEY:
         raise HTTPException(status_code=403, detail="Unauthorized")
     
     if confirm != "DELETE_EVERYTHING":
@@ -191,14 +197,13 @@ def read_root():
 @app.get("/health")
 def health_check():
     """Health check endpoint"""
-    import os
     
     return {
         "status": "healthy",
         "version": "2.0",
         "services": {
             "database": "connected",
-            "openai_whisper": "configured" if os.getenv("OPENAI_API_KEY") else "not_configured",
-            "stripe": "configured" if os.getenv("STRIPE_SECRET_KEY") else "not_configured"
+            "openai_whisper": "configured" if OPENAI_API_KEY else "not_configured",
+            "stripe": "configured" if STRIPE_SECRET_KEY else "not_configured"
         }
     }
