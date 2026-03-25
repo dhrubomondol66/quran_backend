@@ -5,47 +5,49 @@ from app.auth import hash_password
 import uuid
 from datetime import datetime
 
+from app.config import ADMIN_EMAILS, ADMIN_DEFAULT_PASSWORD
+
 def register_manual_admins():
     # Make sure tables exist
     Base.metadata.create_all(bind=engine)
     
     db = SessionLocal()
     
-    admins = [
-        {"email": "beupintech@gmail.com", "first_name": "Michael", "last_name": "Totok"},
-        {"email": "dhrubomondol@gmail.com", "first_name": "Dhrubo", "last_name": "Mondol"}
-    ]
+    print(f"Starting manual admin registration for {len(ADMIN_EMAILS)} users from config...")
     
-    password = "admin123"
-    hashed_pwd = hash_password(password)
+    # Use ADMIN_DEFAULT_PASSWORD for all admins
+    hashed_pwd = hash_password(ADMIN_DEFAULT_PASSWORD)
     
-    print(f"Starting manual admin registration for {len(admins)} users...")
-    
-    for admin_data in admins:
+    for email in ADMIN_EMAILS:
         # Check if user already exists
-        db_user = db.query(User).filter(User.email == admin_data["email"]).first()
+        db_user = db.query(User).filter(User.email == email).first()
         
         if not db_user:
             new_user = User(
-                email=admin_data["email"],
+                email=email,
                 hashed_password=hashed_pwd,
-                first_name=admin_data["first_name"],
-                last_name=admin_data["last_name"],
                 provider="local",
                 is_email_verified=True,
-                email_verification_token=str(uuid.uuid4()),
                 subscription_status=SubscriptionStatus.ACTIVE,
-                subscription_end_date=None,
                 created_at=datetime.utcnow()
             )
+            
+            # Set names based on email if possible
+            if email == ADMIN_EMAILS[0]:
+                new_user.first_name = "Michael"
+                new_user.last_name = "Totok"
+            elif len(ADMIN_EMAILS) > 1 and email == ADMIN_EMAILS[1]:
+                new_user.first_name = "Dhrubo"
+                new_user.last_name = "Mondol"
+                
             db.add(new_user)
-            print(f"✅ Registered admin: {admin_data['email']}")
+            print(f"Registered admin: {email}")
         else:
             # Update existing user to make sure they have the password and status
             db_user.hashed_password = hashed_pwd
             db_user.subscription_status = SubscriptionStatus.ACTIVE
             db_user.is_email_verified = True
-            print(f"ℹ️ Updated existing admin: {admin_data['email']}")
+            print(f"Updated existing admin: {email}")
             
     db.commit()
     db.close()

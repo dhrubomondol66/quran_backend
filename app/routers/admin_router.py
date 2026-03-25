@@ -8,6 +8,7 @@ from app.models import User, Payment, SubscriptionStatus
 from typing import Optional, List
 from pydantic import BaseModel
 from app.config import ADMIN_INIT_SECRET, ADMIN_EMAILS
+from app import auth, schemas, crud
 import os
 
 router = APIRouter()
@@ -50,14 +51,13 @@ def get_admin_dashboard(
     Returns stats for total users, premium/free split, revenue, and growth trends
     """
     
-    # Total users
-    total_users = db.query(User).count().filter(~User.email.in_(ADMIN_EMAILS)).count()
+    # Total users (excluding admins)
+    total_users = db.query(User).filter(~User.email.in_(ADMIN_EMAILS)).count()
     
-    # Premium vs Free users
+    # Premium vs Free users (excluding admins)
     premium_users = db.query(User).filter(
         User.subscription_status.in_([SubscriptionStatus.ACTIVE]),
         ~User.email.in_(ADMIN_EMAILS)
-        
     ).count()
     free_users = total_users - premium_users
     
@@ -103,7 +103,8 @@ def get_admin_dashboard(
             and_(
                 User.created_at >= day_start,
                 User.created_at < day_end,
-                User.subscription_status == SubscriptionStatus.FREE
+                User.subscription_status == SubscriptionStatus.FREE,
+                ~User.email.in_(ADMIN_EMAILS)
             )
         ).count()
         
@@ -111,7 +112,8 @@ def get_admin_dashboard(
             and_(
                 User.created_at >= day_start,
                 User.created_at < day_end,
-                User.subscription_status.in_([SubscriptionStatus.ACTIVE])
+                User.subscription_status.in_([SubscriptionStatus.ACTIVE]),
+                ~User.email.in_(ADMIN_EMAILS)
             )
         ).count()
         
@@ -191,8 +193,8 @@ def get_all_users(
     Admins can view all users, filter by plan, and search by name/email
     """
     
-    # Base query
-    query = db.query(User)
+    # Base query (excluding admins)
+    query = db.query(User).filter(~User.email.in_(ADMIN_EMAILS))
     
     # Search filter
     if search:
@@ -334,6 +336,214 @@ def update_admin_profile(
 
 
 # ============================================================================
+# DATA UTILITIES
+# ============================================================================
+
+@router.post("/populate-surahs")
+def populate_surahs(
+    admin: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """Populate database with Quran data - ONE TIME USE"""
+    from app.models import Surah, Ayah
+    
+    # Check if already populated
+    if db.query(Surah).count() > 0:
+        return {"message": "Surahs already exist", "count": db.query(Surah).count()}
+    
+    import requests
+    URL = "https://api.alquran.cloud/v1/quran/quran-uthmani"
+    
+    response = requests.get(URL)
+    data = response.json()["data"]["surahs"]
+    
+    for surah in data:
+        db_surah = Surah(
+            number=surah["number"],
+            name_ar=surah["name"],
+            name_en=surah["englishName"],
+            ayah_count=len(surah["ayahs"]),
+        )
+        db.add(db_surah)
+        db.flush()
+        
+        for ayah in surah["ayahs"]:
+            db_ayah = Ayah(
+                surah_id=db_surah.id,
+                number=ayah["numberInSurah"],
+                text=ayah["text"],
+            )
+            db.add(db_ayah)
+    
+    db.commit()
+    return {"message": f"Successfully populated {len(data)} surahs"}
+
+
+@router.delete("/nuclear-cleanup")
+def nuclear_cleanup(
+    confirm: str = Query(..., description="Must be 'DELETE_EVERYTHING'"),
+    admin: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """
+    Delete ALL users and related data (keeps surahs/ayahs)
+    Only callable by authenticated admin
+    """
+    if confirm != "DELETE_EVERYTHING":
+        raise HTTPException(status_code=400, detail="Must pass confirm=DELETE_EVERYTHING")
+    
+    from app.models import User as UserModel, UserProgress, UserSettings, CommunityMember, Notification, DeviceToken, Community, CommunityInvitation, Payment, UserActivity
+    
+    try:
+        # Delete everything user-related (bottom-up)
+        db.query(DeviceToken).delete()
+        db.query(Notification).delete()
+        db.query(UserActivity).delete()
+        db.query(Payment).delete()
+        db.query(CommunityInvitation).delete()
+        db.query(CommunityMember).delete()
+        db.query(Community).delete()
+        db.query(UserSettings).delete()
+        db.query(UserProgress).delete()
+        db.query(UserModel).delete()
+        
+        db.commit()
+        
+        return {
+            "message": "Successfully deleted ALL users and related data",
+            "kept": "Surahs and Ayahs preserved"
+        }
+        
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+
+
+@router.post("/test-email")
+def test_email(
+    to_email: str,
+    admin: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """Test email sending functionality"""
+    from app.email_utils import send_email_sync
+    import os
+    
+    html = "<h1>Admin Test Email</h1><p>If you see this, the admin email utility is working!</p>"
+    
+    try:
+        result = send_email_sync(to_email, "Admin Utility: Test Email", html)
+        return {
+            "success": result,
+            "sendgrid_configured": bool(os.getenv("SENDGRID_API_KEY")),
+            "gmail_configured": bool(os.getenv("SMTP_USER") and os.getenv("SMTP_PASSWORD"))
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+@router.post("/admin-login")
+def admin_login(
+    login_data: schemas.UserLogin,
+    db: Session = Depends(get_db)
+):
+    """Admin login with email and password"""
+    db_user = crud.get_user_by_email(db, login_data.email)
+    
+    if not db_user:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    if not auth.verify_password(login_data.password, db_user.hashed_password):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    if db_user.email not in ADMIN_EMAILS:
+        raise HTTPException(status_code=403, detail="Admin access required")
+        
+    token = auth.create_access_token(data={"sub": str(db_user.id)})
+    
+    return {
+        "message": "Admin login successful",
+        "admin": schemas.UserOut.from_orm(db_user),
+        "token": token
+    }
+
+@router.post("/admin-forgot-password")
+def forgot_password(
+    email: str,
+    db: Session = Depends(get_db)
+):
+    """Forgot password for admin"""
+    db_user = crud.get_user_by_email(db, email)
+    
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if db_user.email not in ADMIN_EMAILS:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # For security, we should probably generate a shorter-lived token specifically for password reset
+    # but for now we'll use the current implementation style
+    token = auth.create_access_token(data={"sub": str(db_user.id)})
+    
+    return {
+        "message": "Forgot password successful",
+        "admin": schemas.UserOut.from_orm(db_user),
+        "token": token
+    }
+
+@router.post("/admin-reset-password")
+def reset_password(
+    token: str,
+    password: str,
+    db: Session = Depends(get_db)
+):
+    """Reset password for admin using the token from forgot-password"""
+    from jose import jwt, JWTError
+    from app.config import SECRET_KEY
+    from app.auth import ALGORITHM, hash_password
+    
+    try:
+        # Decode the token to get the user ID
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id_str = payload.get("sub")
+        if not user_id_str:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        user_id = int(user_id_str)
+    except (JWTError, ValueError):
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+        
+    # Find user by ID
+    db_user = db.query(User).filter(User.id == user_id).first()
+    
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Check if they are an admin
+    if not is_admin(db_user):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Update password
+    db_user.hashed_password = hash_password(password)
+    db.commit()
+    
+    return {
+        "message": "Password reset successful",
+        "admin": schemas.UserOut.from_orm(db_user)
+    }
+
+@router.post("/admin-logout")
+def admin_logout(
+    admin: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """Admin logout"""
+    return {
+        "message": "Admin logout successful"
+    }
+
+# ============================================================================
 # ADMIN INITIALIZATION (Run once to create admin users)
 # ============================================================================
 
@@ -351,36 +561,29 @@ def initialize_admins(
         raise HTTPException(status_code=403, detail="Invalid initialization key")
     
     from app.auth import hash_password
+    from app.config import ADMIN_DEFAULT_PASSWORD
     
     admins_created = []
     
-    # Admin 1: Super Admin - Totok Michael
-    if not db.query(User).filter(User.email == ADMIN_EMAILS[0]).first():
-        admin1 = User(
-            email=ADMIN_EMAILS[0],
-            hashed_password=hash_password("Admin123!"),  # Change this password after creation
-            first_name="Totok",
-            last_name="Michael",
-            provider="local",
-            is_email_verified=True,
-            subscription_status=SubscriptionStatus.FREE
-        )
-        db.add(admin1)
-        admins_created.append("Super Admin created")
-    
-    # Admin 2: Sub Admin - Devon Lane
-    if not db.query(User).filter(User.email == ADMIN_EMAILS[1]).first():
-        admin2 = User(
-            email=ADMIN_EMAILS[1],
-            hashed_password=hash_password("Admin123!"),  # Change this password after creation
-            first_name="Devon",
-            last_name="Lane",
-            provider="local",
-            is_email_verified=True,
-            subscription_status=SubscriptionStatus.FREE
-        )
-        db.add(admin2)
-        admins_created.append("Sub Admin created")
+    for email in ADMIN_EMAILS:
+        if not db.query(User).filter(User.email == email).first():
+            user = User(
+                email=email,
+                hashed_password=hash_password(ADMIN_DEFAULT_PASSWORD),
+                provider="local",
+                is_email_verified=True,
+                subscription_status=SubscriptionStatus.ACTIVE
+            )
+            # Set names based on index or email
+            if email == ADMIN_EMAILS[0]:
+                user.first_name = "Michael"
+                user.last_name = "Totok"
+            elif len(ADMIN_EMAILS) > 1 and email == ADMIN_EMAILS[1]:
+                user.first_name = "Dhrubo"
+                user.last_name = "Mondol"
+            
+            db.add(user)
+            admins_created.append(f"Admin {email} created")
     
     if admins_created:
         db.commit()

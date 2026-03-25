@@ -4,9 +4,10 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv(override=True)
 
+
 # General App Settings
-SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here")
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
+SECRET_KEY = os.getenv("SECRET_KEY")
+FRONTEND_URL = os.getenv("FRONTEND_URL")
 
 # Database Configuration
 DATABASE_URL = os.getenv(
@@ -15,12 +16,13 @@ DATABASE_URL = os.getenv(
 )
 
 # Admin Configuration
-ADMIN_SECRET_KEY = os.getenv("ADMIN_SECRET_KEY", "default-secret-key").strip()
-ADMIN_INIT_SECRET = os.getenv("ADMIN_INIT_SECRET", "your-super-secret-init-key").strip()
+ADMIN_SECRET_KEY = os.getenv("ADMIN_SECRET_KEY").strip()
+ADMIN_INIT_SECRET = os.getenv("ADMIN_INIT_SECRET").strip()
 ADMIN_EMAILS = [
     email.strip() for email in os.getenv("ADMIN_EMAILS", "").split(",") 
     if email.strip()
 ]
+ADMIN_DEFAULT_PASSWORD = os.getenv("ADMIN_DEFAULT_PASSWORD", "Admin123!").strip()
 
 # OAuth Configuration
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")

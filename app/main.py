@@ -41,6 +41,9 @@ def populate_surahs(admin_key: str, db: Session = Depends(get_db)):
     """Populate database with Quran data - ONE TIME USE"""
     
     # Security check
+    # Debug check
+    print(f"DEBUG: Auth attempt for populate-surahs. Supplied='{admin_key}', Expected='{ADMIN_SECRET_KEY}'")
+    
     if admin_key != ADMIN_SECRET_KEY:
         raise HTTPException(status_code=403, detail="Unauthorized")
     

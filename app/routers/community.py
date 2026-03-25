@@ -55,6 +55,7 @@ class CommunityResponse(BaseModel):
     is_private: bool
     created_at: datetime
     user_role: Optional[str] = None  # User's role in this community
+    community_image_url: Optional[str] = None
     
     class Config:
         from_attributes = True
@@ -1330,10 +1331,12 @@ async def upload_community_image(
     # Update community
     community.community_image_url = image_url
     db.commit()
+    db.refresh(community)
     
     return {
         "message": "Community image uploaded successfully",
-        "image_url": image_url
+        "image_url": image_url,
+        "community": _format_community_response(community, current_user.id, db)
     }
 # ============================================================================
 # HELPER FUNCTIONS
@@ -1362,7 +1365,8 @@ def _format_community_response(community: Community, user_id: int, db: Session) 
         max_members=community.max_members,
         is_private=community.is_private,
         created_at=community.created_at,
-        user_role=membership.role.value if membership else None
+        user_role=membership.role.value if membership else None,
+        community_image_url=community.community_image_url
     )
 
 
