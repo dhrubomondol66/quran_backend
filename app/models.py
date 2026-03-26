@@ -24,7 +24,9 @@ class Ayah(Base):
     surah_id = Column(Integer, ForeignKey("surahs.id", ondelete="CASCADE"))
     number = Column(Integer, nullable=False)
     text = Column(Text, nullable=False)
+    audio = Column(String, nullable=True)
     surah = relationship("Surah", back_populates="ayahs")
+
 
 class SubscriptionStatus(str, enum.Enum):
     FREE = "free"

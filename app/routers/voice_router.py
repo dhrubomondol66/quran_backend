@@ -7,7 +7,8 @@ Integrates with existing UserProgress and database.
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import Optional, Dict
+from typing import Optional, Dict, List
+
 import json
 import base64
 import asyncio
@@ -100,18 +101,21 @@ async def websocket_recite(
         # Validate surah/ayah
         ayah_end = ayah_end or ayah_start
         
-        # Get reference text from database
-        reference_text = await _get_reference_text(
+        # Get reference ayahs from database
+        reference_ayahs = await _get_reference_ayahs(
             db, surah_number, ayah_start, ayah_end
         )
         
-        if not reference_text:
+        if not reference_ayahs:
             await websocket.send_json({
                 "type": "error",
                 "error": f"Invalid Surah/Ayah: {surah_number}:{ayah_start}-{ayah_end}"
             })
             await websocket.close()
             return
+        
+        reference_text = " ".join(a.text for a in reference_ayahs)
+
         
         # Get surah info
         surah = db.query(Surah).filter(Surah.number == surah_number).first()
@@ -149,11 +153,19 @@ async def websocket_recite(
                 "number": surah.number,
                 "name_ar": surah.name_ar,
                 "name_en": surah.name_en,
-                "ayah_range": f"{ayah_start}-{ayah_end}"
+                "ayah_range": f"{ayah_start}-{ayah_end}",
+                "ayahs": [
+                    {
+                        "number": a.number,
+                        "text": a.text,
+                        "audio": a.audio
+                    } for a in reference_ayahs
+                ]
             },
             "reference_text": reference_text,
             "message": "Ready to receive audio. Start reciting!"
         })
+
         
         # Main loop - receive audio chunks
         while True:
@@ -236,13 +248,13 @@ async def websocket_recite(
 # HELPER FUNCTIONS
 # ============================================================================
 
-async def _get_reference_text(
+async def _get_reference_ayahs(
     db: Session,
     surah_number: int,
     ayah_start: int,
     ayah_end: int
-) -> Optional[str]:
-    """Get reference text from database"""
+) -> List[Ayah]:
+    """Get reference Ayah objects from database"""
     
     ayahs = db.query(Ayah).filter(
         Ayah.surah_id == db.query(Surah.id).filter(Surah.number == surah_number).scalar_subquery(),
@@ -250,10 +262,8 @@ async def _get_reference_text(
         Ayah.number <= ayah_end
     ).order_by(Ayah.number).all()
     
-    if not ayahs:
-        return None
-    
-    return " ".join(ayah.text for ayah in ayahs)
+    return ayahs
+
 
 
 async def _process_final_recording(
@@ -450,16 +460,19 @@ async def evaluate_recitation_rest(
     
     ayah_end = ayah_end or ayah_start
     
-    # Get reference text
-    reference_text = await _get_reference_text(
+    # Get reference ayahs
+    reference_ayahs = await _get_reference_ayahs(
         db, surah_number, ayah_start, ayah_end
     )
     
-    if not reference_text:
+    if not reference_ayahs:
         raise HTTPException(
             status_code=404,
             detail=f"Ayah not found: Surah {surah_number}, Ayah {ayah_start}-{ayah_end}"
         )
+    
+    reference_text = " ".join(a.text for a in reference_ayahs)
+
     
     # Process
     voice_service = get_voice_service()

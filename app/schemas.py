@@ -6,9 +6,11 @@ class AyahOut(BaseModel):
     id: int
     number: int     
     text: str
+    audio: Optional[str] = None
     
     class Config:
         from_attributes = True
+
 
 class SurahOut(BaseModel):
     id: int
