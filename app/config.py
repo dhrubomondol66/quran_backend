@@ -16,8 +16,8 @@ DATABASE_URL = os.getenv(
 )
 
 # Admin Configuration
-ADMIN_SECRET_KEY = os.getenv("ADMIN_SECRET_KEY").strip()
-ADMIN_INIT_SECRET = os.getenv("ADMIN_INIT_SECRET").strip()
+ADMIN_SECRET_KEY = os.getenv("ADMIN_SECRET_KEY", "").strip()
+ADMIN_INIT_SECRET = os.getenv("ADMIN_INIT_SECRET", "").strip()
 ADMIN_EMAILS = [
     email.strip() for email in os.getenv("ADMIN_EMAILS", "").split(",") 
     if email.strip()
