@@ -10,6 +10,10 @@ from pydantic import BaseModel
 from app.config import ADMIN_INIT_SECRET, ADMIN_EMAILS
 from app import auth, schemas, crud
 import os
+import secrets
+import string
+from datetime import datetime, timedelta
+
 
 router = APIRouter()
 def exclude_admins_filter(query, model=User):
@@ -469,69 +473,108 @@ def admin_login(
         "token": token
     }
 
+_reset_tokens: dict = {}
+def _generate_reset_token(length: int = 64) -> str:
+    alphabet = string.ascii_letters + string.digits
+    return "".join(secrets.choice(alphabet) for _ in range(length))
+
 @router.post("/admin-forgot-password")
 def forgot_password(
     email: str,
     db: Session = Depends(get_db)
 ):
-    """Forgot password for admin"""
+    """
+    Send a password-reset email to the admin.
+    Always returns 200 so email enumeration is not possible.
+    """
     db_user = crud.get_user_by_email(db, email)
-    
-    if not db_user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    if db_user.email not in ADMIN_EMAILS:
-        raise HTTPException(status_code=403, detail="Admin access required")
-    
-    # For security, we should probably generate a shorter-lived token specifically for password reset
-    # but for now we'll use the current implementation style
-    token = auth.create_access_token(data={"sub": str(db_user.id)})
-    
-    return {
-        "message": "Forgot password successful",
-        "admin": schemas.UserOut.from_orm(db_user),
-        "token": token
+ 
+    # Silently succeed if user not found or not admin (security best practice)
+    if not db_user or db_user.email not in ADMIN_EMAILS:
+        return {"message": "If that email belongs to an admin, a reset link has been sent."}
+ 
+    # Generate a secure token (NOT the auth JWT — that never expires properly)
+    token = _generate_reset_token()
+    _reset_tokens[token] = {
+        "user_id": db_user.id,
+        "expires": datetime.utcnow() + timedelta(hours=1),
     }
-
+ 
+    # Build the reset link that points to your frontend
+    # Adjust FRONTEND_URL to match your env variable / config
+    import os
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    reset_link = f"{frontend_url}/reset-password?token={token}"
+ 
+    html = f"""
+    <div style="font-family:sans-serif;max-width:520px;margin:auto">
+      <h2 style="color:#1a2a1e">Qari Admin — Password Reset</h2>
+      <p>Hi {db_user.first_name or 'Admin'},</p>
+      <p>We received a request to reset your admin password.
+         Click the button below — the link expires in <strong>1 hour</strong>.</p>
+      <a href="{reset_link}"
+         style="display:inline-block;padding:12px 28px;background:#1a2a1e;
+                color:#c9a84c;border-radius:8px;text-decoration:none;
+                font-weight:600;margin:16px 0">
+        Reset Password
+      </a>
+      <p style="color:#666;font-size:13px">
+        Or copy this link:<br>
+        <a href="{reset_link}" style="color:#1a2a1e">{reset_link}</a>
+      </p>
+      <p style="color:#999;font-size:12px">
+        If you didn't request this, you can safely ignore this email.
+      </p>
+    </div>
+    """
+ 
+    from app.email_utils import send_email_sync
+    try:
+        send_email_sync(db_user.email, "Qari Admin — Password Reset", html)
+    except Exception as e:
+        # Log but don't leak the error to the caller
+        print(f"[ERROR] Failed to send reset email to {db_user.email}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to send reset email. Check server email config.")
+ 
+    return {"message": "If that email belongs to an admin, a reset link has been sent."}
+ 
 @router.post("/admin-reset-password")
 def reset_password(
     token: str,
     password: str,
     db: Session = Depends(get_db)
 ):
-    """Reset password for admin using the token from forgot-password"""
-    from jose import jwt, JWTError
-    from app.config import SECRET_KEY
-    from app.auth import ALGORITHM, hash_password
-    
-    try:
-        # Decode the token to get the user ID
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id_str = payload.get("sub")
-        if not user_id_str:
-            raise HTTPException(status_code=401, detail="Invalid token")
-        user_id = int(user_id_str)
-    except (JWTError, ValueError):
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
-        
-    # Find user by ID
-    db_user = db.query(User).filter(User.id == user_id).first()
-    
-    if not db_user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    # Check if they are an admin
-    if not is_admin(db_user):
-        raise HTTPException(status_code=403, detail="Admin access required")
-    
-    # Update password
+    """
+    Reset admin password using the token from the reset email.
+    Token is single-use and expires in 1 hour.
+    """
+    from app.auth import hash_password
+ 
+    entry = _reset_tokens.get(token)
+ 
+    if not entry:
+        raise HTTPException(status_code=400, detail="Invalid or already-used reset token.")
+ 
+    if datetime.utcnow() > entry["expires"]:
+        _reset_tokens.pop(token, None)
+        raise HTTPException(status_code=400, detail="Reset token has expired. Please request a new one.")
+ 
+    db_user = db.query(User).filter(User.id == entry["user_id"]).first()
+ 
+    if not db_user or not is_admin(db_user):
+        raise HTTPException(status_code=403, detail="Admin access required.")
+ 
+    if len(password) < 8:
+        raise HTTPException(status_code=422, detail="Password must be at least 8 characters.")
+ 
+    # Invalidate token immediately (single-use)
+    _reset_tokens.pop(token, None)
+ 
     db_user.hashed_password = hash_password(password)
     db.commit()
-    
-    return {
-        "message": "Password reset successful",
-        "admin": schemas.UserOut.from_orm(db_user)
-    }
+ 
+    return {"message": "Password reset successful. You can now log in with your new password."}
+ 
 
 @router.post("/admin-logout")
 def admin_logout(
