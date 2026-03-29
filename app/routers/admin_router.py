@@ -503,8 +503,8 @@ def forgot_password(
     db_user.reset_token_expires = datetime.utcnow() + timedelta(hours=1)
     db.commit()
 
-    backend_url = os.getenv("BACKEND_URL", "https://quran-api-admin.onrender.com")
-    reset_link = f"{backend_url}/admin/reset-password?token={token}"
+    frontend_url = os.getenv("FRONTEND_URL", "https://quran-api-admin.onrender.com")
+    reset_link = f"{frontend_url}/reset-password?token={token}"
 
     html = f"""
     <div style="font-family:sans-serif;max-width:520px;margin:auto">
