@@ -539,7 +539,7 @@ def forgot_password(
 
 
 @router.get("/reset-password")
-def reset_password_page(token: str = Query(...), db: Session = Depends(get_db)):
+def reset_password_page(token: str, password: str, confirm_password: str, db: Session = Depends(get_db)):
     """
     ✅ GET route — browser hits this when admin clicks the email link.
     Validates the token and serves an HTML password reset form.
