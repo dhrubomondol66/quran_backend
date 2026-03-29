@@ -503,7 +503,7 @@ def forgot_password(
     # Build the reset link that points to your frontend
     # Adjust FRONTEND_URL to match your env variable / config
     import os
-    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    frontend_url = os.getenv("FRONTEND_URL", "https://quran-api-admin.onrender.com")
     reset_link = f"{frontend_url}/reset-password?token={token}"
  
     html = f"""
@@ -542,6 +542,7 @@ def forgot_password(
 def reset_password(
     token: str,
     password: str,
+    confirm_password: str,
     db: Session = Depends(get_db)
 ):
     """
