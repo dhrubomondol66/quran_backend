@@ -19,7 +19,7 @@ def send_email_sync(to_email: str, subject: str, html_content: str):
             from sendgrid.helpers.mail import Mail
             
             message = Mail(
-                from_email=(SMTP_FROM_EMAIL, SMTP_FROM_NAME),
+                from_email=SMTP_FROM_EMAIL,
                 to_emails=to_email,
                 subject=subject,
                 html_content=html_content
