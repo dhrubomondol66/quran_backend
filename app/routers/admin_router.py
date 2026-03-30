@@ -465,13 +465,10 @@ def admin_logout(
 # ADMIN PASSWORD RESET
 # ============================================================================
 #
-# IMPORTANT — before deploying, add these two columns to your User model:
+# IMPORTANT — you already have these two columns in your User model:
 #
-#   reset_token        = Column(String, nullable=True)
-#   reset_token_expires = Column(DateTime, nullable=True)
-#
-# Then run:
-#   alembic revision --autogenerate -m "add reset token fields"
+#   password_reset_token        = Column(String, nullable=True)
+#   password_reset_expires = Column(DateTime, nullable=True)
 #   alembic upgrade head
 #
 # Also set this env var on Render:
@@ -499,8 +496,8 @@ def forgot_password(
 
     # ✅ Store token in DB — survives Render restarts
     token = _generate_reset_token()
-    db_user.reset_token = token
-    db_user.reset_token_expires = datetime.utcnow() + timedelta(hours=1)
+    db_user.password_reset_token = token
+    db_user.password_reset_expires = datetime.utcnow() + timedelta(hours=1)
     db.commit()
 
     frontend_url = os.getenv("FRONTEND_URL", "https://quran-api-admin.onrender.com")
@@ -539,14 +536,14 @@ def forgot_password(
 
 
 @router.get("/reset-password")
-def reset_password_page(token: str, password: str, confirm_password: str, db: Session = Depends(get_db)):
+def reset_password_page(token: str, db: Session = Depends(get_db)):
     """
     ✅ GET route — browser hits this when admin clicks the email link.
     Validates the token and serves an HTML password reset form.
     """
     db_user = db.query(User).filter(
-        User.reset_token == token,
-        User.reset_token_expires > datetime.utcnow()
+        User.password_reset_token == token,
+        User.password_reset_expires > datetime.utcnow()
     ).first()
 
     if not db_user:
@@ -713,40 +710,36 @@ class ResetPasswordRequest(BaseModel):
 
 @router.post("/admin-reset-password")
 def reset_password(
-    data: ResetPasswordRequest,
+    token: str,
+    password: str,
+    confirm_password: str,
     db: Session = Depends(get_db)
 ):
-    """
-    Reset admin password using the token from the reset email.
-    Token is single-use and expires in 1 hour.
-    """
+    """Reset password for admin using the token from forgot-password"""
     from app.auth import hash_password
+    
+    if password != confirm_password:
+        raise HTTPException(status_code=400, detail="Passwords do not match")
 
-    # ✅ Query token from DB — not from in-memory dict
+    # Find user by token
     db_user = db.query(User).filter(
-        User.reset_token == data.token,
-        User.reset_token_expires > datetime.utcnow()
+        User.password_reset_token == token,
+        User.password_reset_expires > datetime.utcnow()
     ).first()
-
+    
     if not db_user:
-        raise HTTPException(status_code=400, detail="Invalid or already-used reset token.")
-
-    if not is_admin(db_user):
-        raise HTTPException(status_code=403, detail="Admin access required.")
-
-    if data.password != data.confirm_password:
-        raise HTTPException(status_code=422, detail="Passwords do not match.")
-
-    if len(data.password) < 8:
-        raise HTTPException(status_code=422, detail="Password must be at least 8 characters.")
-
-    # ✅ Wipe token immediately so it cannot be reused
-    db_user.reset_token = None
-    db_user.reset_token_expires = None
-    db_user.hashed_password = hash_password(data.password)
+        raise HTTPException(status_code=400, detail="Invalid or expired token")
+        
+    # Update password
+    db_user.hashed_password = hash_password(password)
+    db_user.password_reset_token = None
+    db_user.password_reset_expires = None
     db.commit()
-
-    return {"message": "Password reset successful. You can now log in with your new password."}
+    
+    return {
+        "message": "Password reset successful",
+        "admin": schemas.UserOut.from_orm(db_user)
+    }
 
 
 # ============================================================================
