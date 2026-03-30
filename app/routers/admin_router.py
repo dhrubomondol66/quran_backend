@@ -472,7 +472,7 @@ def admin_logout(
 #   alembic upgrade head
 #
 # Also set this env var on Render:
-#   BACKEND_URL = https://quran-api-admin.onrender.com
+#   BACKEND_URL = https://moonlit-monstera-9bfbc5.netlify.app/
 # ============================================================================
 
 def _generate_reset_token(length: int = 64) -> str:
@@ -500,7 +500,7 @@ def forgot_password(
     db_user.password_reset_expires = datetime.utcnow() + timedelta(hours=1)
     db.commit()
 
-    frontend_url = os.getenv("FRONTEND_URL", "https://quran-api-admin.onrender.com")
+    frontend_url = os.getenv("FRONTEND_URL", "https://moonlit-monstera-9bfbc5.netlify.app")
     reset_link = f"{frontend_url}/reset-password?token={token}"
 
     html = f"""
