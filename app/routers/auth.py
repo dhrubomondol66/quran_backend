@@ -196,6 +196,9 @@ def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
     if not auth.verify_password(user.password, db_user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
+    if db_user.is_suspended:
+        raise HTTPException(status_code=403, detail="Your account has been suspended by an admin.")
+    
     # ✅ Check if email is verified
     #if not db_user.is_email_verified:
     #    raise HTTPException(
@@ -228,6 +231,9 @@ def token(
 
     if not auth.verify_password(form_data.password, db_user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    if db_user.is_suspended:
+        raise HTTPException(status_code=403, detail="Your account has been suspended by an admin.")
 
     #if not db_user.is_email_verified:
     #    raise HTTPException(

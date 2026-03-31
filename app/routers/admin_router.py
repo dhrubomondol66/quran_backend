@@ -168,6 +168,7 @@ class UserListItem(BaseModel):
     plan: str
     joined: str
     subscription_status: str
+    is_suspended: bool
 
 
 class UserManagementResponse(BaseModel):
@@ -227,7 +228,8 @@ def get_all_users(
             full_name=full_name,
             plan=plan_status,
             joined=user.created_at.strftime("%Y-%m-%d"),
-            subscription_status=user.subscription_status.value
+            subscription_status=user.subscription_status.value,
+            is_suspended=user.is_suspended
         ))
 
     total_pages = (total + per_page - 1) // per_page
@@ -239,6 +241,62 @@ def get_all_users(
         "per_page": per_page,
         "total_pages": total_pages
     }
+
+
+@router.post("/users/{user_id}/suspend")
+def suspend_user(
+    user_id: int,
+    admin: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """Suspend a user account"""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if user.email in ADMIN_EMAILS:
+        raise HTTPException(status_code=403, detail="Cannot suspend an admin account")
+    
+    user.is_suspended = True
+    db.commit()
+    return {"message": f"User {user.email} has been suspended"}
+
+
+@router.post("/users/{user_id}/activate")
+def activate_user(
+    user_id: int,
+    admin: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """Activate a suspended user account"""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user.is_suspended = False
+    db.commit()
+    return {"message": f"User {user.email} has been activated"}
+
+
+@router.delete("/users/{user_id}")
+def delete_user(
+    user_id: int,
+    admin: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """Hard delete a user and all their data"""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if user.email in ADMIN_EMAILS:
+        raise HTTPException(status_code=403, detail="Cannot delete an admin account")
+    
+    # Deletion in models with cascade="all, delete-orphan" should handle most things
+    # But we can be explicit if needed. The User model has several relationships.
+    db.delete(user)
+    db.commit()
+    return {"message": f"User {user.email} and all associated data deleted"}
 
 
 # ============================================================================
@@ -745,6 +803,15 @@ def reset_password(
 # ============================================================================
 # ADMIN INITIALIZATION (Run once to create admin users)
 # ============================================================================
+
+@router.get("/admin-username")
+def get_admin_username(admin: User = Depends(require_admin)):
+    """Return the email of the currently logged-in admin"""
+    return {
+        "admin_username": admin.email
+    }
+
+
 
 @router.post("/init-admins")
 def initialize_admins(

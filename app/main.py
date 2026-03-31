@@ -177,6 +177,7 @@ app.include_router(analytics_router, prefix="/analytics", tags=["Analytics"])
 app.include_router(notification_router, prefix="/notifications", tags=["Notifications"])
 app.include_router(admin_router, prefix="/admin", tags=["Admin"])
 
+
 @app.on_event("startup")
 def start_scheduler():
     scheduler = BackgroundScheduler()

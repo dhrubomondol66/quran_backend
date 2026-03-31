@@ -68,6 +68,9 @@ def google_login(payload: dict, db: Session = Depends(get_db)):
         )
     else:
         logger.info(f"User found: {user.id}")
+        if user.is_suspended:
+            logger.warning(f"Suspended user attempted Google login: {email}")
+            raise HTTPException(status_code=403, detail="Your account has been suspended by an admin.")
     
     token = create_access_token({"sub": str(user.id)})
     

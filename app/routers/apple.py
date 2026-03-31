@@ -115,6 +115,7 @@ def apple_login(payload: dict, db: Session = Depends(get_db)):
         )
     
 
+    email = id_info.get("email")
     if not email:
         email = f"{apple_user_id}@privaterelay.appleid.com"
     
@@ -138,6 +139,9 @@ def apple_login(payload: dict, db: Session = Depends(get_db)):
             first_name=first_name,
             last_name=last_name
         )
+    else:
+        if user.is_suspended:
+            raise HTTPException(status_code=403, detail="Your account has been suspended by an admin.")
     
 
     token = create_access_token({"sub": str(user.id)})
