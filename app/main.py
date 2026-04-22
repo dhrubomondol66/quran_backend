@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
@@ -28,7 +29,7 @@ from fastapi import HTTPException, Depends
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.routers.admin_router import router as admin_router
-from app.config import ADMIN_SECRET_KEY, OPENAI_API_KEY, STRIPE_SECRET_KEY
+from app.config import ADMIN_SECRET_KEY, OPENAI_API_KEY, STRIPE_SECRET_KEY, UPLOAD_DIR
 
 logger = logging.getLogger(__name__)
 
@@ -157,6 +158,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Mount static files for uploads
+if not os.path.exists(UPLOAD_DIR):
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 # Create tables
 Base.metadata.create_all(bind=engine)

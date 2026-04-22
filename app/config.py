@@ -8,6 +8,8 @@ load_dotenv(override=True)
 # General App Settings
 SECRET_KEY = os.getenv("SECRET_KEY")
 FRONTEND_URL = os.getenv("FRONTEND_URL")
+BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000").rstrip("/")
+UPLOAD_DIR = os.getenv("UPLOAD_DIR", "/var/data")
 
 # Database Configuration
 DATABASE_URL = os.getenv(
@@ -50,11 +52,6 @@ SMTP_FROM_NAME = os.getenv("SMTP_FROM_NAME", "Quran Recitation App")
 
 # Email - SendGrid
 SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
-
-# Cloudinary Configuration
-CLOUDINARY_CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME")
-CLOUDINARY_API_KEY = os.getenv("CLOUDINARY_API_KEY")
-CLOUDINARY_API_SECRET = os.getenv("CLOUDINARY_API_SECRET")
 
 # AI / Voice Configuration
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
