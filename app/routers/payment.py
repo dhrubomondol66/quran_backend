@@ -210,6 +210,10 @@ def handle_checkout_session_completed(session, db: Session):
 
         db.commit()
 
+        # ✅ Notify Admins about premium purchase
+        from app.services.notification_service import NotificationService
+        NotificationService.notify_admin_premium_purchased(db, user.email, plan_type)
+
         logger.info(
             f"User {user_id} subscribed to {plan_type} plan. "
             f"Valid until {current_period_end}"

@@ -26,6 +26,10 @@ async def register(
     # Create user (unverified)
     db_user = crud.create_user(db, user.email, user.password, user.first_name, user.last_name)
     
+    # ✅ Notify Admins about new registration
+    from app.services.notification_service import NotificationService
+    NotificationService.notify_admin_new_user(db, user.email)
+    
     # Send verification email in background
     verification_link = f"{FRONTEND_URL}/verify-email?token={db_user.email_verification_token}"
     html_content = get_verification_email_template(verification_link, user.email)

@@ -300,6 +300,12 @@ class NotificationType(enum.Enum):
     SUBSCRIPTION_EXPIRED = "subscription_expired"
     COMMUNITY_JOINED = "community_joined"
     REMOVED_FROM_COMMUNITY = "removed_from_community"
+    ADMIN_USER_REGISTERED = "admin_user_registered"
+    ADMIN_USER_DELETED = "admin_user_deleted"
+    ADMIN_COMMUNITY_CREATED = "admin_community_created"
+    ADMIN_PREMIUM_PURCHASED = "admin_premium_purchased"
+    ADMIN_FEATURE_REQUEST = "admin_feature_request"
+    NEW_BOOK_ADDED = "new_book_added"
 
 
 class Notification(Base):
@@ -347,3 +353,32 @@ class DeviceToken(Base):
     
     # Relationship
     user = relationship("User", back_populates="device_tokens")
+
+
+class Book(Base):
+    """Library books added by admin"""
+    __tablename__ = "books"
+    
+    id = Column(Integer, primary_key=True)
+    title = Column(String(255), nullable=False)
+    author = Column(String(255), nullable=True)
+    description = Column(Text, nullable=True)
+    image_url = Column(String(500), nullable=True)
+    pdf_url = Column(String(500), nullable=True)
+    category = Column(String(100), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, onupdate=datetime.utcnow)
+
+
+class FeatureRequest(Base):
+    """User submitted feature requests"""
+    __tablename__ = "feature_requests"
+    
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    title = Column(String(255), nullable=False)
+    description = Column(Text, nullable=False)
+    status = Column(String(50), default="pending")  # pending, reviewed, planned, completed
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    user = relationship("User", backref="feature_requests")

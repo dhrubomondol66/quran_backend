@@ -5,7 +5,7 @@ from sqlalchemy import func, and_, or_, desc
 from datetime import datetime, timedelta
 from app.database import get_db
 from app.deps import get_current_user
-from app.models import User, Payment, SubscriptionStatus
+from app.models import User, Payment, SubscriptionStatus, Book
 from typing import Optional, List
 from pydantic import BaseModel
 from app.config import ADMIN_INIT_SECRET, ADMIN_EMAILS
@@ -179,6 +179,15 @@ class UserManagementResponse(BaseModel):
     total_pages: int
 
 
+class BookCreate(BaseModel):
+    title: str
+    author: Optional[str] = None
+    description: Optional[str] = None
+    image_url: Optional[str] = None
+    pdf_url: Optional[str] = None
+    category: Optional[str] = None
+
+
 @router.get("/users", response_model=UserManagementResponse)
 def get_all_users(
     admin: User = Depends(require_admin),
@@ -294,6 +303,10 @@ def delete_user(
     
     # Deletion in models with cascade="all, delete-orphan" should handle most things
     # But we can be explicit if needed. The User model has several relationships.
+    # Notify Admins about account deletion
+    from app.services.notification_service import NotificationService
+    NotificationService.notify_admin_user_deleted(db, user.email)
+
     db.delete(user)
     db.commit()
     return {"message": f"User {user.email} and all associated data deleted"}
@@ -797,6 +810,44 @@ def reset_password(
     return {
         "message": "Password reset successful",
         "admin": schemas.UserOut.from_orm(db_user)
+    }
+
+
+# ============================================================================
+# LIBRARY MANAGEMENT
+# ============================================================================
+
+@router.post("/books")
+def add_book_to_library(
+    book_data: BookCreate,
+    admin: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """Add a new book to the library and notify all users"""
+    from app.services.notification_service import NotificationService
+    
+    new_book = Book(
+        title=book_data.title,
+        author=book_data.author,
+        description=book_data.description,
+        image_url=book_data.image_url,
+        pdf_url=book_data.pdf_url,
+        category=book_data.category
+    )
+    
+    db.add(new_book)
+    db.commit()
+    db.refresh(new_book)
+    
+    # ✅ Notify all users about the new book
+    NotificationService.broadcast_new_book(db, new_book.title, new_book.id)
+    
+    return {
+        "message": "Book added successfully and users notified",
+        "book": {
+            "id": new_book.id,
+            "title": new_book.title
+        }
     }
 
 

@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.deps import get_current_user
 from app.image_utils import upload_image
-from app.models import User, UserSettings
+from app.models import User, UserSettings, FeatureRequest
 from pydantic import BaseModel
 from typing import Optional 
 
@@ -174,3 +174,36 @@ def delete_profile_picture(
     db.commit()
     
     return {"message": "Profile picture deleted"}
+
+
+class FeatureRequestCreate(BaseModel):
+    title: str
+    description: str
+
+@router.post("/feature-request")
+def submit_feature_request(
+    request_data: FeatureRequestCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Submit a feature request and notify admins"""
+    from app.services.notification_service import NotificationService
+    
+    new_request = FeatureRequest(
+        user_id=current_user.id,
+        title=request_data.title,
+        description=request_data.description
+    )
+    
+    db.add(new_request)
+    db.commit()
+    db.refresh(new_request)
+    
+    # ✅ Notify Admins about new feature request
+    NotificationService.notify_admin_feature_request(db, current_user.email, new_request.title)
+    
+    return {
+        "success": True,
+        "message": "Feature request submitted successfully! Admins have been notified.",
+        "request_id": new_request.id
+    }

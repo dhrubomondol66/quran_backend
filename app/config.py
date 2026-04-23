@@ -56,3 +56,6 @@ SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
 # AI / Voice Configuration
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
+# Firebase Configuration
+FIREBASE_SERVICE_ACCOUNT_PATH = os.getenv("FIREBASE_SERVICE_ACCOUNT_PATH", "firebase/qari-app-ee702-firebase-adminsdk-fbsvc-fa4b701041.json")
+
