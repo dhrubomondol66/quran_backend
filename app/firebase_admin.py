@@ -9,20 +9,31 @@ logger = logging.getLogger(__name__)
 # Initialize Firebase Admin SDK
 try:
     if not firebase_admin._apps:
-        # Check if the path is absolute or relative to the project root
-        if not os.path.isabs(FIREBASE_SERVICE_ACCOUNT_PATH):
-            # Assuming project root is the parent of 'app'
-            project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            full_path = os.path.join(project_root, FIREBASE_SERVICE_ACCOUNT_PATH)
-        else:
-            full_path = FIREBASE_SERVICE_ACCOUNT_PATH
-
-        if os.path.exists(full_path):
-            cred = credentials.Certificate(full_path)
+        # 1. Try to load from environment variable JSON string (Ideal for Render/Cloud)
+        fcm_json = os.getenv("FIREBASE_SERVICE_ACCOUNT_JSON")
+        if fcm_json:
+            import json
+            service_account_info = json.loads(fcm_json)
+            cred = credentials.Certificate(service_account_info)
             firebase_admin.initialize_app(cred)
-            logger.info("Firebase Admin SDK initialized successfully.")
+            logger.info("Firebase Admin SDK initialized from environment variable.")
+        
+        # 2. Fallback to file path
         else:
-            logger.warning(f"Firebase service account file not found at {full_path}. Push notifications will not work.")
+            # Check if the path is absolute or relative to the project root
+            if not os.path.isabs(FIREBASE_SERVICE_ACCOUNT_PATH):
+                # Assuming project root is the parent of 'app'
+                project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                full_path = os.path.join(project_root, FIREBASE_SERVICE_ACCOUNT_PATH)
+            else:
+                full_path = FIREBASE_SERVICE_ACCOUNT_PATH
+
+            if os.path.exists(full_path):
+                cred = credentials.Certificate(full_path)
+                firebase_admin.initialize_app(cred)
+                logger.info(f"Firebase Admin SDK initialized from file: {full_path}")
+            else:
+                logger.warning("Firebase credentials not found (checked FIREBASE_SERVICE_ACCOUNT_JSON and file path). Push notifications will not work.")
 except Exception as e:
     logger.error(f"Failed to initialize Firebase Admin SDK: {e}")
 
