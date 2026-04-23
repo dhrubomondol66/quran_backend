@@ -106,4 +106,4 @@ docker-compose.override.yml
 *.key
 *.crt
 
-firebase/*.json
+firebase/
